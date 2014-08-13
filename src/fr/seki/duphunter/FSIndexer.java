@@ -67,7 +67,7 @@ public class FSIndexer implements Indexer {
 				FileFilterUtils.and(
 				FileFilterUtils.directoryFileFilter(),
 				FileFilterUtils.notFileFilter(FileFilterUtils.nameFileFilter(".svn"))));
-		System.out.println("Done. Now Indexing files...");
+		System.out.println("Done. " + String.valueOf(files.size()) + " files found. Now Indexing files...");
 		
 		int shunk = files.size() / 20;
 		int c = 0;
