@@ -2,7 +2,11 @@
 package fr.seki.duphunter;
 
 /**
- *
+ * Types of available outputs
+ * - screen
+ * - file
+ * - database (SQLite)
+ * 
  * @author Sebastien
  */
 public enum OutputKind {

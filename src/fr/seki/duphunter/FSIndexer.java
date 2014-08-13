@@ -15,8 +15,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.AndFileFilter;
-import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 
 /**
@@ -75,9 +73,11 @@ public class FSIndexer implements Indexer {
 		int c = 0;
 		for (File f : files) {
 			try {
+				/* try to have some visual prograssion */
 				c++;
 				if(c % shunk == 0)
 					System.out.print(".");
+				
 				IndexNode node = new IndexNode();
 				node.setCanonicalPath(f.getCanonicalPath());
 				node.setRepoRoot(fsPath);
