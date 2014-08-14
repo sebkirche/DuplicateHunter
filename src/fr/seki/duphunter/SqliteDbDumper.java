@@ -74,6 +74,7 @@ public class SqliteDbDumper implements IndexDumper {
 			stmt.executeUpdate(sql);
 			sql = "create index if not exists repo_idx on FileIndex (repo)";
 			stmt.executeUpdate(sql);
+                        //TODO: table for schema version
 			stmt.close();
 			
 		} catch (SQLException ex) {
@@ -84,11 +85,13 @@ public class SqliteDbDumper implements IndexDumper {
 	}
 
 	private void dumpdata(List<IndexNode> index) {
+                String path = "";
 		try {
 			PreparedStatement stmt;
 			stmt = cnx.prepareStatement("insert into FileIndex (path, repo, name, hash, lastup, author, size) values (?, ?, ?, ?, ?, ?, ?);");
 			for (IndexNode node : index) {
-				stmt.setString(1, node.getCanonicalPath());
+                                path = node.getCanonicalPath();
+				stmt.setString(1, path);
 				stmt.setString(2, node.getRepoRoot());
 				stmt.setString(3, node.getName());
 				stmt.setString(4, node.getChecksum());
@@ -101,7 +104,7 @@ public class SqliteDbDumper implements IndexDumper {
 			cnx.commit();
 		} catch (SQLException ex) {
 			//Logger.getLogger(SqliteDbDumper.class.getName()).log(Level.SEVERE, null, ex);
-			System.err.println("Error while inserting into SQLite db (" + db + "): "+ex.getMessage());
+			System.err.println("Error while inserting into SQLite db (" + db + ") for path " + path + ": " + ex.getMessage());
 			System.exit(1);
 		}
 	}
