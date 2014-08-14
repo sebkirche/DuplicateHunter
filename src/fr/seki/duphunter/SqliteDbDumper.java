@@ -1,4 +1,3 @@
-
 package fr.seki.duphunter;
 
 import java.util.List;
@@ -19,8 +18,9 @@ public class SqliteDbDumper implements IndexDumper {
 		db = output;
 		connect();
 		createStruct();
-		if(index.size() > 0)
+		if (index.size() > 0) {
 			purgeRepo(index.get(0).getRepoRoot());
+		}
 		dumpdata(index);
 		disconnect();
 	}
@@ -29,13 +29,13 @@ public class SqliteDbDumper implements IndexDumper {
 		try {
 			Class.forName("org.sqlite.JDBC");
 //			new org.sqlite.JDBC();
-			
+
 			org.sqlite.SQLiteConfig cfg = new SQLiteConfig();
 			cfg.setSynchronous(SQLiteConfig.SynchronousMode.OFF);
 //			cfg.setJournalMode(SQLiteConfig.JournalMode.PERSIST);
 			cnx = DriverManager.getConnection("jdbc:sqlite:" + db.replace("\\", "/"), cfg.toProperties());
 			cnx.setAutoCommit(false);
-			
+
 		} catch (ClassNotFoundException ex) {
 //			Logger.getLogger(SqliteDbDumper.class.getName()).log(Level.SEVERE, null, ex);
 			System.err.println("Error while instanciating SQLite driver: " + ex.getMessage());
@@ -61,7 +61,7 @@ public class SqliteDbDumper implements IndexDumper {
 		try {
 			Statement stmt;
 			String sql;
-			
+
 			stmt = cnx.createStatement();
 			sql = "create table if not exists FileIndex "
 					+ "(path   text primary key not null,"
@@ -74,9 +74,9 @@ public class SqliteDbDumper implements IndexDumper {
 			stmt.executeUpdate(sql);
 			sql = "create index if not exists repo_idx on FileIndex (repo)";
 			stmt.executeUpdate(sql);
-                        //TODO: table for schema version
+			//TODO: table for schema version
 			stmt.close();
-			
+
 		} catch (SQLException ex) {
 			//Logger.getLogger(SqliteDbDumper.class.getName()).log(Level.SEVERE, null, ex);
 			System.err.println("Error while creating DB (" + db + ") structure: " + ex.getMessage());
@@ -85,12 +85,18 @@ public class SqliteDbDumper implements IndexDumper {
 	}
 
 	private void dumpdata(List<IndexNode> index) {
-                String path = "";
+		String path = "";
 		try {
 			PreparedStatement stmt;
-			stmt = cnx.prepareStatement("insert into FileIndex (path, repo, name, hash, lastup, author, size) values (?, ?, ?, ?, ?, ?, ?);");
+			stmt = cnx.prepareStatement("insert or replace into FileIndex (path, repo, name, hash, lastup, author, size) values (?, ?, ?, ?, ?, ?, ?);");
+			DefinedConsoleProgressor bar = new DefinedConsoleProgressor(index.size());
+			long c=0;
+			
 			for (IndexNode node : index) {
-                                path = node.getCanonicalPath();
+				c++;
+				if(c % 20 == 0)
+					bar.updateProgress(c);
+				path = node.getCanonicalPath();
 				stmt.setString(1, path);
 				stmt.setString(2, node.getRepoRoot());
 				stmt.setString(3, node.getName());
@@ -100,6 +106,8 @@ public class SqliteDbDumper implements IndexDumper {
 				stmt.setLong(7, node.getSize());
 				stmt.executeUpdate();
 			}
+			bar.updateProgress(c);
+			System.out.println(" Done.");
 			stmt.close();
 			cnx.commit();
 		} catch (SQLException ex) {
@@ -120,6 +128,6 @@ public class SqliteDbDumper implements IndexDumper {
 			System.err.println("Error while purging repo " + repoRoot + " from db " + db + ": " + ex.getMessage());
 			System.exit(1);
 		}
-		
+
 	}
 }

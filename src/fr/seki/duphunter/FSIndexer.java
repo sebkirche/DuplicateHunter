@@ -16,6 +16,7 @@ import java.util.Date;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
 
 /**
  *
@@ -26,6 +27,7 @@ public class FSIndexer implements Indexer {
 	private OutputKind outKind;
 	private String outName;
 	private String fsPath;
+	private UndefinedConsoleProgressor indetProgress = new UndefinedConsoleProgressor();
 
 	public FSIndexer(String path) {
 		fsPath = path;
@@ -56,27 +58,36 @@ public class FSIndexer implements Indexer {
 		outName = output;
 	}
 
+	
 	private List<IndexNode> crawlFS(String fsPath) {
 		List<IndexNode> index = new ArrayList<>();
+		if(fsPath.endsWith(File.pathSeparator))
+			fsPath = fsPath.substring(0, fsPath.length()-1);
 		File entryDir = new File(fsPath);
+		
 		MD5.initNativeLibrary(false);
 		
 		System.out.println("Computing files count...");
 		Collection<File> files = FileUtils.listFiles(entryDir,
 				FileFilterUtils.trueFileFilter(),
-				FileFilterUtils.and(
+				/*FileFilterUtils.and(
 				FileFilterUtils.directoryFileFilter(),
-				FileFilterUtils.notFileFilter(FileFilterUtils.nameFileFilter(".svn"))));
+				FileFilterUtils.notFileFilter(FileFilterUtils.nameFileFilter(".svn"))*/
+				new SpecialDirFilter()
+				);
+		
 		System.out.println("Done. " + String.valueOf(files.size()) + " files found. Now Indexing files...");
 		
-		int shunk = files.size() / 20;
 		int c = 0;
+		DefinedConsoleProgressor bar = new DefinedConsoleProgressor(files.size());
+
 		for (File f : files) {
 			try {
-				/* try to have some visual prograssion */
+				
+				/* try to have some visual progression */
 				c++;
-				if(c % shunk == 0)
-					System.out.print(".");
+				if(c % 20 == 0)
+					bar.updateProgress(c);
 				
 				IndexNode node = new IndexNode();
 				node.setCanonicalPath(f.getCanonicalPath());
@@ -92,12 +103,11 @@ public class FSIndexer implements Indexer {
 				System.err.println("Error while processing file " + f.getPath() + ": " + ex.getMessage());
 			}	
 		}
-		System.out.println("\nDone.");
+		bar.updateProgress(c);
+		System.out.println(" Done.");
 
 		return index;
 	}
-
-	
 
 	private void dumpToStdout(List<IndexNode> index) {
 		new StdoutDumper().dump(index, null);
@@ -109,5 +119,27 @@ public class FSIndexer implements Indexer {
 
 	private void dumpToBase(List<IndexNode> index) {
 		new SqliteDbDumper().dump(index, outName);
+	}
+	
+	private class SpecialDirFilter implements IOFileFilter{
+		private long count = 0;
+
+		@Override
+		public boolean accept(File file) {
+			count++;
+			if(count % 10 == 0)
+				indetProgress.animate();
+			return file.isDirectory() && !file.getName().startsWith(".");
+		}
+
+		@Override
+		public boolean accept(File dir, String name) {
+			count++;
+			if(count % 10 == 0)
+				indetProgress.animate();
+			
+			return accept(dir);
+		}
+		
 	}
 }
