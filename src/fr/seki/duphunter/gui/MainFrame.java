@@ -1,10 +1,15 @@
-
 package fr.seki.duphunter.gui;
 
+import fr.seki.duphunter.IndexController;
+import fr.seki.duphunter.IndexModel;
+import java.awt.event.ActionEvent;
 import java.io.File;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import javax.swing.filechooser.FileFilter;
+import javax.swing.UIManager;
 
 /**
  *
@@ -12,11 +17,22 @@ import javax.swing.filechooser.FileFilter;
  */
 public class MainFrame extends javax.swing.JFrame {
 
+	public static final String cfgFile = "duplicate.properties";
+	private File selectedFile;
+	private IndexModel model;
+	private IndexController control;
+
 	/**
 	 * Creates new form MainFrame
 	 */
 	public MainFrame() {
+		model = new IndexModel();
+		control = new IndexController(model);
 		initComponents();
+		indexViewerPanel.setModel(model);
+		optionsPanel.setParentFrame(this);
+		fileOpenMenuItem.setAction(chooseDBAction);
+		fileQuitMenuItem.setAction(quitAction);
 	}
 
 	/**
@@ -28,37 +44,52 @@ public class MainFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         fileChooser = new javax.swing.JFileChooser();
+        frameContent = new javax.swing.JPanel();
+        tabbedPane = new javax.swing.JTabbedPane();
+        indexViewerPanel = new fr.seki.duphunter.gui.IndexViewPanel();
+        optionsPanel = new fr.seki.duphunter.gui.OptionsPanel();
         menuBar = new javax.swing.JMenuBar();
         menuFile = new javax.swing.JMenu();
-        jMenuItem4 = new javax.swing.JMenuItem();
-        jMenuItem2 = new javax.swing.JMenuItem();
+        fileOpenMenuItem = new javax.swing.JMenuItem();
+        fileQuitMenuItem = new javax.swing.JMenuItem();
         menuEdit = new javax.swing.JMenu();
         menuHelp = new javax.swing.JMenu();
-        jMenuItem1 = new javax.swing.JMenuItem();
+        helpAboutMenuItem = new javax.swing.JMenuItem();
 
         fileChooser.setDialogTitle("Selection d'une base");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Duplicate Hunter");
+        setLocationByPlatform(true);
         setName("MainFrame"); // NOI18N
+
+        tabbedPane.addTab("View Data", indexViewerPanel);
+        tabbedPane.addTab("Options", optionsPanel);
+
+        javax.swing.GroupLayout frameContentLayout = new javax.swing.GroupLayout(frameContent);
+        frameContent.setLayout(frameContentLayout);
+        frameContentLayout.setHorizontalGroup(
+            frameContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(frameContentLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(tabbedPane, javax.swing.GroupLayout.DEFAULT_SIZE, 594, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        frameContentLayout.setVerticalGroup(
+            frameContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, frameContentLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(tabbedPane, javax.swing.GroupLayout.DEFAULT_SIZE, 482, Short.MAX_VALUE)
+                .addContainerGap())
+        );
 
         menuFile.setText("File");
 
-        jMenuItem4.setText("Open...");
-        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                openDB(evt);
-            }
-        });
-        menuFile.add(jMenuItem4);
+        fileOpenMenuItem.setText("Open...");
+        menuFile.add(fileOpenMenuItem);
 
-        jMenuItem2.setText("Quit");
-        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                quitApp(evt);
-            }
-        });
-        menuFile.add(jMenuItem2);
+        fileQuitMenuItem.setText("Quit");
+        menuFile.add(fileQuitMenuItem);
 
         menuBar.add(menuFile);
 
@@ -67,13 +98,13 @@ public class MainFrame extends javax.swing.JFrame {
 
         menuHelp.setText("Help");
 
-        jMenuItem1.setText("About");
-        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+        helpAboutMenuItem.setText("About");
+        helpAboutMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 displayAbout(evt);
             }
         });
-        menuHelp.add(jMenuItem1);
+        menuHelp.add(helpAboutMenuItem);
 
         menuBar.add(menuHelp);
 
@@ -83,36 +114,49 @@ public class MainFrame extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 569, Short.MAX_VALUE)
+            .addComponent(frameContent, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addComponent(frameContent, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void displayAbout(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_displayAbout
-        JOptionPane.showMessageDialog(this, "DuplicateHunter", "About this tool", JOptionPane.OK_OPTION, null);
+		ImageIcon icn = new ImageIcon(MainFrame.class.getResource("duplicate_search.png"));
+		JOptionPane.showMessageDialog(this, "DuplicateHunter", "About this tool", JOptionPane.OK_OPTION, icn);
     }//GEN-LAST:event_displayAbout
+	
+	private Action chooseDBAction = new AbstractAction("Open...") {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			String cwd = System.getProperty("user.dir");
+			fileChooser.setCurrentDirectory(new File(cwd));
+			fileChooser.setFileFilter(new SimpleExtFileFilter("db"));
 
-    private void quitApp(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_quitApp
-		System.exit(0);
-    }//GEN-LAST:event_quitApp
-
-    private void openDB(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openDB
-        
-		String cwd = System.getProperty("user.dir");
-		fileChooser.setCurrentDirectory(new File(cwd));
-		fileChooser.setFileFilter(new SimpleExtFileFilter("db"));
-		
-		int returnVal = fileChooser.showOpenDialog(this);
-		if(returnVal == JFileChooser.APPROVE_OPTION){
-			File file = fileChooser.getSelectedFile();
-			JOptionPane.showMessageDialog(this, "You selected " + file.getPath());
+			int returnVal = fileChooser.showOpenDialog(MainFrame.this);
+			if (returnVal == JFileChooser.APPROVE_OPTION) {
+				selectedFile = fileChooser.getSelectedFile();
+				dbSelectedAction.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
+			}
 		}
-    }//GEN-LAST:event_openDB
+	};
+	private Action quitAction = new AbstractAction("Quit") {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			System.exit(0);
+		}
+	};
+	private Action dbSelectedAction = new AbstractAction() {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			//JOptionPane.showMessageDialog(MainFrame.this, "You selected " + selectedFile.getPath());
+			control.setDB(selectedFile);
+			
+		}
+	};
 
 	/**
 	 * @param args the command line arguments
@@ -124,12 +168,14 @@ public class MainFrame extends javax.swing.JFrame {
 		 * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
 		 */
 		try {
-			for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+			/*for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
 				if ("Nimbus".equals(info.getName())) {
 					javax.swing.UIManager.setLookAndFeel(info.getClassName());
 					break;
 				}
 			}
+			*/
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (ClassNotFoundException ex) {
 			java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
 		} catch (InstantiationException ex) {
@@ -149,13 +195,17 @@ public class MainFrame extends javax.swing.JFrame {
 		});
 	}
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JFileChooser fileChooser;
-    private javax.swing.JMenuItem jMenuItem1;
-    private javax.swing.JMenuItem jMenuItem2;
-    private javax.swing.JMenuItem jMenuItem4;
-    private javax.swing.JMenuBar menuBar;
-    private javax.swing.JMenu menuEdit;
-    private javax.swing.JMenu menuFile;
-    private javax.swing.JMenu menuHelp;
+    javax.swing.JFileChooser fileChooser;
+    javax.swing.JMenuItem fileOpenMenuItem;
+    javax.swing.JMenuItem fileQuitMenuItem;
+    javax.swing.JPanel frameContent;
+    javax.swing.JMenuItem helpAboutMenuItem;
+    fr.seki.duphunter.gui.IndexViewPanel indexViewerPanel;
+    javax.swing.JMenuBar menuBar;
+    javax.swing.JMenu menuEdit;
+    javax.swing.JMenu menuFile;
+    javax.swing.JMenu menuHelp;
+    fr.seki.duphunter.gui.OptionsPanel optionsPanel;
+    javax.swing.JTabbedPane tabbedPane;
     // End of variables declaration//GEN-END:variables
 }
