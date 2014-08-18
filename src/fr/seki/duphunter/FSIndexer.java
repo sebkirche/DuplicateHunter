@@ -65,7 +65,7 @@ public class FSIndexer implements Indexer {
 		
 		MD5.initNativeLibrary(false);
 		
-		System.out.println("Computing files count...");
+		System.out.println("Computing files count... ");
 		Collection<File> files = FileUtils.listFiles(entryDir,
 				FileFilterUtils.trueFileFilter(),
 				/*FileFilterUtils.and(
@@ -74,7 +74,8 @@ public class FSIndexer implements Indexer {
 				new SpecialDirFilter()
 				);
 		
-		System.out.println("Done. " + String.valueOf(files.size()) + " files found. Now Indexing files...");
+		System.out.println(" Done. " + String.valueOf(files.size()) + " files found.");
+                System.out.println("Indexing files... ");
 		
 		int c = 0;
 		DefinedConsoleProgressor bar = new DefinedConsoleProgressor(files.size());

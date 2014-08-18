@@ -91,7 +91,7 @@ public class SqliteDbDumper implements IndexDumper {
 			stmt = cnx.prepareStatement("insert or replace into FileIndex (path, repo, name, hash, lastup, author, size) values (?, ?, ?, ?, ?, ?, ?);");
 			DefinedConsoleProgressor bar = new DefinedConsoleProgressor(index.size());
 			long c=0;
-			
+			System.out.println("Saving into " + db + "... ");
 			for (IndexNode node : index) {
 				c++;
 				if(c % 20 == 0)
