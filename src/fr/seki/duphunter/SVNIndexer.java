@@ -18,7 +18,7 @@ import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
  *
  * @author Sebastien
  */
-public class SVNIndexer implements Indexer {
+public class SVNIndexer extends Indexer {
 
 	private String repoUrl;
 	private String repoRoot;
@@ -138,6 +138,8 @@ public class SVNIndexer implements Indexer {
 			SVNDirEntry entry = (SVNDirEntry) iter.next();
 
 			if (entry.getKind() == SVNNodeKind.FILE) {
+				if(ignoreEmptyFiles && entry.getSize()==0)
+					continue;
 				IndexNode node = new IndexNode();
 				node.setRepoRoot(repoUrl);
 				node.setName(entry.getName());

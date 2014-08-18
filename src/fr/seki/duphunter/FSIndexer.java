@@ -20,7 +20,7 @@ import org.apache.commons.io.filefilter.IOFileFilter;
  *
  * @author Sebastien
  */
-public class FSIndexer implements Indexer {
+public class FSIndexer extends Indexer {
 
 	private OutputKind outKind;
 	private String outName;
@@ -68,25 +68,26 @@ public class FSIndexer implements Indexer {
 		System.out.println("Computing files count... ");
 		Collection<File> files = FileUtils.listFiles(entryDir,
 				FileFilterUtils.trueFileFilter(),
-				/*FileFilterUtils.and(
-				FileFilterUtils.directoryFileFilter(),
-				FileFilterUtils.notFileFilter(FileFilterUtils.nameFileFilter(".svn"))*/
 				new SpecialDirFilter()
 				);
 		
 		System.out.println(" Done. " + String.valueOf(files.size()) + " files found.");
                 System.out.println("Indexing files... ");
 		
-		int c = 0;
+		int count = 0, emptyCount = 0;
 		DefinedConsoleProgressor bar = new DefinedConsoleProgressor(files.size());
 
 		for (File f : files) {
 			try {
-				
 				/* try to have some visual progression */
-				c++;
-				if(c % 20 == 0)
-					bar.updateProgress(c);
+				count++;
+				if(count % 20 == 0)
+					bar.updateProgress(count);
+				
+				if(ignoreEmptyFiles && f.length()==0){
+					emptyCount++;
+					continue;
+				}
 				
 				IndexNode node = new IndexNode();
 				node.setCanonicalPath(f.getCanonicalPath());
@@ -102,8 +103,11 @@ public class FSIndexer implements Indexer {
 				System.err.println("Error while processing file " + f.getPath() + ": " + ex.getMessage());
 			}	
 		}
-		bar.updateProgress(c);
-		System.out.println(" Done.");
+		bar.updateProgress(count);
+		System.out.print(" Done.");
+		if(ignoreEmptyFiles && emptyCount > 0)
+			System.out.print(" ("+String.valueOf(emptyCount)+" empty files ignored)");
+		System.out.println();
 
 		return index;
 	}

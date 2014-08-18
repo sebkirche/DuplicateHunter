@@ -85,7 +85,6 @@ public class Main {
 			} else {
 				if (cli.hasOption("i")) {
 					Indexer indexer;
-
 					if (cli.hasOption("s")) {
 						setupSvnLib();
 						String repoUrl = cli.getOptionValue("r");
