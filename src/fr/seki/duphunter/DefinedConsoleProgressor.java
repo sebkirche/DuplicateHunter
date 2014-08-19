@@ -3,10 +3,10 @@ package fr.seki.duphunter;
 import java.io.IOException;
 
 /**
- *
+ * A console progressor when the total amount of steps is known
  * @author Sebastien
  */
-public class DefinedConsoleProgressor {
+public class DefinedConsoleProgressor implements Progressor {
 
     /**
      * maximum value represented
@@ -41,7 +41,7 @@ public class DefinedConsoleProgressor {
         totalCount = total;
     }
 
-    public void updateProgress(long current) {
+    public void progress(long current) {
         int p;
 
         p = (int) ((double) current / totalCount * width);
@@ -60,6 +60,9 @@ public class DefinedConsoleProgressor {
         }
     }
 
+	/** 
+	 * progressor main class, to make some tests
+	 */
     public static void main(String[] args) throws InterruptedException {
         int max = 100, visu = 50;
 
@@ -72,7 +75,7 @@ public class DefinedConsoleProgressor {
         }
         DefinedConsoleProgressor p = new DefinedConsoleProgressor(max, visu);
         for (int i = 0; i <= max; i++) {
-            p.updateProgress(i);
+            p.progress(i);
             Thread.sleep(50);
         }
         System.out.println(" Done.");

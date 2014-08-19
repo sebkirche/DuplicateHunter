@@ -5,7 +5,8 @@ import java.sql.*;
 import org.sqlite.SQLiteConfig;
 
 /**
- *
+ * Dump indexed files into a SQLite database
+ * 
  * @author Sebastien
  */
 public class SqliteDbDumper implements IndexDumper {
@@ -17,7 +18,7 @@ public class SqliteDbDumper implements IndexDumper {
 	public void dump(List<IndexNode> index, String output) {
 		db = output;
 		connect();
-		createStruct();
+		createStruct(cnx);
 		if (index.size() > 0) {
 			purgeRepo(index.get(0).getRepoRoot());
 		}
@@ -57,7 +58,7 @@ public class SqliteDbDumper implements IndexDumper {
 		}
 	}
 
-	private void createStruct() {
+	public static void createStruct(Connection cnx) {
 		try {
 			Statement stmt;
 			String sql;
@@ -76,10 +77,10 @@ public class SqliteDbDumper implements IndexDumper {
 			stmt.executeUpdate(sql);
 			//TODO: table for schema version
 			stmt.close();
-
+			cnx.commit();
 		} catch (SQLException ex) {
 			//Logger.getLogger(SqliteDbDumper.class.getName()).log(Level.SEVERE, null, ex);
-			System.err.println("Error while creating DB (" + db + ") structure: " + ex.getMessage());
+			System.err.println("Error while creating DB (" + cnx.toString() + ") structure: " + ex.getMessage());
 			System.exit(1);
 		}
 	}
@@ -95,7 +96,7 @@ public class SqliteDbDumper implements IndexDumper {
 			for (IndexNode node : index) {
 				c++;
 				if(c % 20 == 0)
-					bar.updateProgress(c);
+					bar.progress(c);
 				path = node.getCanonicalPath();
 				stmt.setString(1, path);
 				stmt.setString(2, node.getRepoRoot());
@@ -106,7 +107,7 @@ public class SqliteDbDumper implements IndexDumper {
 				stmt.setLong(7, node.getSize());
 				stmt.executeUpdate();
 			}
-			bar.updateProgress(c);
+			bar.progress(c);
 			System.out.println(" Done.");
 			stmt.close();
 			cnx.commit();

@@ -1,5 +1,5 @@
 
-package fr.seki.duphunter.gui;
+package fr.seki.duphunter;
 
 import java.io.File;
 import javax.swing.filechooser.FileFilter;
@@ -28,7 +28,7 @@ public class SimpleExtFileFilter extends FileFilter{
 
 	@Override
 	public String getDescription() {
-		return "Database files (*.db)";
+		return "Duplicate Hunter files (*" + ext + ")";
 	}
 	
 }

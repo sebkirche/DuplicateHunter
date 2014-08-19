@@ -1,4 +1,3 @@
-
 package fr.seki.duphunter;
 
 /**
@@ -6,12 +5,16 @@ package fr.seki.duphunter;
  * @author Sebastien
  */
 public abstract class Indexer {
+
 	/**
-	 * Wether or not we should consider files with size of 0
+	 * start the file indexation
 	 */
-	boolean ignoreEmptyFiles = true;
 	abstract void process();
+
+	/**
+	 * Specifies the kind of output
+	 * @param kind one of the {@link OutputKind} possible values
+	 * @param output can be the path to the text or database file, or null if useless (e.g. for {@link OutputKind#STDOUT})
+	 */
 	abstract void setOutput(OutputKind kind, String output);
-	
-	void countEmptyFiles(){ ignoreEmptyFiles = false; }
 }

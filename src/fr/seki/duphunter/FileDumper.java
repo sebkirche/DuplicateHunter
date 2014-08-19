@@ -8,7 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 /**
- *
+ * dumper that can save the indexed files into a text file
  * @author Sebastien
  */
 public class FileDumper implements IndexDumper {

@@ -35,6 +35,7 @@ public class FSIndexer extends Indexer {
 
 	@Override
 	public void process() {
+		System.out.println("Indexing " + fsPath + "...");
 		List<IndexNode> index = crawlFS(fsPath);
 		switch (outKind) {
 			case STDOUT:
@@ -82,9 +83,9 @@ public class FSIndexer extends Indexer {
 				/* try to have some visual progression */
 				count++;
 				if(count % 20 == 0)
-					bar.updateProgress(count);
+					bar.progress(count);
 				
-				if(ignoreEmptyFiles && f.length()==0){
+				if(f.length()==0){
 					emptyCount++;
 					continue;
 				}
@@ -103,9 +104,9 @@ public class FSIndexer extends Indexer {
 				System.err.println("Error while processing file " + f.getPath() + ": " + ex.getMessage());
 			}	
 		}
-		bar.updateProgress(count);
+		bar.progress(count);
 		System.out.print(" Done.");
-		if(ignoreEmptyFiles && emptyCount > 0)
+		if(emptyCount > 0)
 			System.out.print(" ("+String.valueOf(emptyCount)+" empty files ignored)");
 		System.out.println();
 
@@ -131,7 +132,7 @@ public class FSIndexer extends Indexer {
 		public boolean accept(File file) {
 			count++;
 			if(count % 10 == 0)
-				indetProgress.animate();
+				indetProgress.progress();
 			return file.isDirectory() && !file.getName().startsWith(".");
 		}
 
@@ -139,7 +140,7 @@ public class FSIndexer extends Indexer {
 		public boolean accept(File dir, String name) {
 			count++;
 			if(count % 10 == 0)
-				indetProgress.animate();
+				indetProgress.progress();
 			
 			return accept(dir);
 		}

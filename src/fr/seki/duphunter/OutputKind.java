@@ -11,8 +11,11 @@ package fr.seki.duphunter;
  */
 public enum OutputKind {
 	
+	/** output to the console */
 	STDOUT("STDOUT"), 
+	/** output to a text file */
 	FILE("File"), 
+	/** output to a database file */
 	DB("DB");
 	
 	private final String text;

@@ -1,39 +1,39 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fr.seki.duphunter.gui;
 
+import fr.seki.duphunter.IndexController;
+import fr.seki.duphunter.IndexModel;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
-import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.ConfigurationException;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.PropertiesConfiguration.PropertiesWriter;
-import org.apache.commons.configuration.SystemConfiguration;
 
 /**
  *
  * @author Sebastien
  */
-public class OptionsPanel extends javax.swing.JPanel {
+public class OptionsPanel extends javax.swing.JPanel implements Observer {
 
+	private IndexModel model = null;
 	private MainFrame parent = null;
-	private PropertiesConfiguration config;
-	private DefaultListModel repoModel = new DefaultListModel();
+	private final DefaultListModel sourcesListModel = new DefaultListModel();
+	private boolean isConnected = false;
+	boolean ignoreEmpty;
+	private IndexController control;
 
 	/**
 	 * Creates new form OptionsPanel
 	 */
 	public OptionsPanel() {
 		initComponents();
-		repoList.setModel(repoModel);
-		retrieveConfig();
+		sourcesList.setModel(sourcesListModel);
 	}
 
 	/**
@@ -45,20 +45,67 @@ public class OptionsPanel extends javax.swing.JPanel {
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        repoList = new javax.swing.JList();
+        sourcesList = new javax.swing.JList();
+        removeSrcBtn = new javax.swing.JButton();
         saveBtn = new javax.swing.JButton();
+        addDirBtn = new javax.swing.JButton();
+        refreshSingleBtn = new javax.swing.JButton();
+        refreshAllBtn = new javax.swing.JButton();
+        addRepoBtn = new javax.swing.JButton();
 
-        repoList.setModel(new javax.swing.AbstractListModel() {
+        sourcesList.setModel(new javax.swing.AbstractListModel() {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
             public int getSize() { return strings.length; }
             public Object getElementAt(int i) { return strings[i]; }
         });
-        jScrollPane1.setViewportView(repoList);
+        sourcesList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                sourcesListValueChanged(evt);
+            }
+        });
+        jScrollPane1.setViewportView(sourcesList);
+
+        removeSrcBtn.setText("Remove selected");
+        removeSrcBtn.setEnabled(false);
+        removeSrcBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                removeSrcBtnActionPerformed(evt);
+            }
+        });
 
         saveBtn.setText("Save");
         saveBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 saveBtnActionPerformed(evt);
+            }
+        });
+
+        addDirBtn.setText("Add directory");
+        addDirBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addDirBtnActionPerformed(evt);
+            }
+        });
+
+        refreshSingleBtn.setText("Refresh selected");
+        refreshSingleBtn.setEnabled(false);
+        refreshSingleBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                refreshSingleBtnActionPerformed(evt);
+            }
+        });
+
+        refreshAllBtn.setText("Refresh all");
+        refreshAllBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                refreshAllBtnActionPerformed(evt);
+            }
+        });
+
+        addRepoBtn.setText("Add repositiory");
+        addRepoBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addRepoBtnActionPerformed(evt);
             }
         });
 
@@ -68,89 +115,155 @@ public class OptionsPanel extends javax.swing.JPanel {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 293, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(123, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(saveBtn)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(saveBtn))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jScrollPane1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(removeSrcBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(addDirBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(addRepoBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(refreshSingleBtn)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(refreshAllBtn)
+                        .addGap(0, 273, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(30, 30, 30)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 123, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(removeSrcBtn)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(addDirBtn)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(addRepoBtn)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(refreshSingleBtn)
+                    .addComponent(refreshAllBtn))
+                .addGap(7, 7, 7)
                 .addComponent(saveBtn)
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
     private void saveBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveBtnActionPerformed
-		try {
-			StringBuilder rb = new StringBuilder();
-//			String s;
-			int i;
-//			while(repoModel.elements().hasMoreElements()){
-//				if(rb.length() > 0)
-//					rb.append(',');
-//				s = (String) repoModel.elements().nextElement();
-//				rb.append(s);
-//			}
-			for(i=0 ; i < repoModel.getSize(); i++){
-				if(rb.length() > 0)
-					rb.append(',');
-				rb.append(repoModel.getElementAt(i));
-			}
-			
-			if(config == null){
-				config = new PropertiesConfiguration();
-				//config.setListDelimiter(',');
-				//config.setPath(parent.cfgFile);
-			
-			}
-			config.setProperty("repo", repoModel.elements());
 
-			config.setHeader("Duplicate Hunter configuration file");
-			config.save(parent.cfgFile);
-		} catch (ConfigurationException ex) {
-			Logger.getLogger(OptionsPanel.class.getName()).log(Level.SEVERE, null, ex);
-		}
+		PropertiesConfiguration cfg = model.getConfig();
+		cfg.setProperty("repo", Collections.list(sourcesListModel.elements()));
+		cfg.setProperty("ignoreEmpty", ignoreEmpty);
+		model.saveConfig();
+
+
     }//GEN-LAST:event_saveBtnActionPerformed
+
+    private void sourcesListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_sourcesListValueChanged
+		updateGui();
+    }//GEN-LAST:event_sourcesListValueChanged
+
+    private void removeSrcBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeSrcBtnActionPerformed
+		int i = sourcesList.getSelectedIndex();
+		while (i > -1) {
+			sourcesListModel.remove(i);
+			i = sourcesList.getSelectedIndex();
+		}
+    }//GEN-LAST:event_removeSrcBtnActionPerformed
+
+    private void addDirBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addDirBtnActionPerformed
+		JFileChooser jfs = new JFileChooser();
+		String cwd = System.getProperty("user.dir");
+		jfs.setCurrentDirectory(new File(cwd));
+		jfs.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		jfs.setMultiSelectionEnabled(true);
+		jfs.setAcceptAllFileFilterUsed(false);
+		if (jfs.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+			for (File f : jfs.getSelectedFiles()) {
+				try {
+					sourcesListModel.addElement(f.getCanonicalFile());
+				} catch (IOException ex) {
+					Logger.getLogger(OptionsPanel.class.getName()).log(Level.SEVERE, null, ex);
+				}
+			}
+		}
+    }//GEN-LAST:event_addDirBtnActionPerformed
+
+    private void refreshSingleBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshSingleBtnActionPerformed
+		int i;
+		int[] sel = sourcesList.getSelectedIndices();
+		for (i = 0; i < sel.length; i++) {
+			String s = (String) sourcesListModel.get(sel[i]);
+			control.index(s);
+		}
+    }//GEN-LAST:event_refreshSingleBtnActionPerformed
+
+    private void addRepoBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addRepoBtnActionPerformed
+		String repo = JOptionPane.showInputDialog(this, "Enter the repositiory path", "svn://");
+
+		//TODO sanity check for repository validity
+		sourcesListModel.addElement(repo);
+    }//GEN-LAST:event_addRepoBtnActionPerformed
+
+    private void refreshAllBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshAllBtnActionPerformed
+		for (Iterator it = Collections.list(sourcesListModel.elements()).iterator(); it.hasNext();) {
+			String s = (String) it.next();
+			control.index(s);
+		}
+    }//GEN-LAST:event_refreshAllBtnActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton addDirBtn;
+    private javax.swing.JButton addRepoBtn;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JList repoList;
+    private javax.swing.JButton refreshAllBtn;
+    private javax.swing.JButton refreshSingleBtn;
+    private javax.swing.JButton removeSrcBtn;
     private javax.swing.JButton saveBtn;
+    private javax.swing.JList sourcesList;
     // End of variables declaration//GEN-END:variables
 
-	private void retrieveConfig() {
-		File f = new File(parent.cfgFile);
-		if (!f.exists()) {
-			try {
-				f.createNewFile();
-			} catch (IOException ex) {
-				Logger.getLogger(OptionsPanel.class.getName()).log(Level.SEVERE, null, ex);
-			}
-			String[] dummy = {"r1", "r2", "r3"};
-			for(String r : dummy)
-				repoModel.addElement(r);
-		} else
-		try {
-			config = new PropertiesConfiguration();
-			config.setListDelimiter(',');
-			config.setPath(parent.cfgFile);
-			config.load();
-			String[] repos = config.getStringArray("repo");
-			for (String r : repos) {
-				repoModel.addElement(r);
-			}
-		} catch (ConfigurationException ex) {
-			Logger.getLogger(OptionsPanel.class.getName()).log(Level.SEVERE, null, ex);
-		}
+	public void retrieveConfig() {
+		PropertiesConfiguration cfg = model.getConfig();
 
+		for (String r : cfg.getStringArray("repo")) {
+			sourcesListModel.addElement(r);
+		}
+	}
+
+	void setModel(IndexModel model) {
+		this.model = model;
+		model.addObserver(this);
 	}
 
 	void setParentFrame(MainFrame parent) {
 		this.parent = parent;
+	}
+
+	@Override
+	public void update(Observable o, Object arg) {
+		isConnected = true;
+		updateGui();
+	}
+
+	private void updateGui() {
+		boolean sourceSelected;
+
+		sourceSelected = (sourcesList.getSelectedIndex() > -1);
+
+		removeSrcBtn.setEnabled(sourceSelected);
+		refreshSingleBtn.setEnabled(sourceSelected && isConnected);
+		refreshAllBtn.setEnabled(isConnected);
+	}
+
+	void setModelController(IndexController control) {
+		this.control = control;
 	}
 }

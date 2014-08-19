@@ -41,6 +41,7 @@ public class SVNIndexer extends Indexer {
 	
 	@Override
 	public void process(){
+		System.out.println("Indexing " + repoUrl + "...");
 		List<IndexNode> index = crawlRepo(repoUrl);
 		switch(outKind){
 			case STDOUT:
@@ -138,7 +139,7 @@ public class SVNIndexer extends Indexer {
 			SVNDirEntry entry = (SVNDirEntry) iter.next();
 
 			if (entry.getKind() == SVNNodeKind.FILE) {
-				if(ignoreEmptyFiles && entry.getSize()==0)
+				if(entry.getSize()==0)
 					continue;
 				IndexNode node = new IndexNode();
 				node.setRepoRoot(repoUrl);

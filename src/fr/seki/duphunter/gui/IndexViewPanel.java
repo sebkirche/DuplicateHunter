@@ -49,8 +49,6 @@ public class IndexViewPanel extends javax.swing.JPanel implements Observer {
         queryText = new javax.swing.JTextArea();
         executeBtn = new javax.swing.JButton();
         dbTable = new quick.dbtable.DBTable();
-        jLabel2 = new javax.swing.JLabel();
-        dbName = new javax.swing.JLabel();
 
         jLabel1.setText("Search");
 
@@ -71,46 +69,32 @@ public class IndexViewPanel extends javax.swing.JPanel implements Observer {
             }
         });
 
-        jLabel2.setText("Base");
-
-        dbName.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        dbName.setForeground(new java.awt.Color(0, 51, 255));
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(dbTable, javax.swing.GroupLayout.DEFAULT_SIZE, 481, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addComponent(jLabel2))
+                        .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(dbName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jScrollPane1)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(executeBtn))))
-                    .addComponent(dbTable, javax.swing.GroupLayout.DEFAULT_SIZE, 481, Short.MAX_VALUE))
+                        .addComponent(jScrollPane1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(executeBtn)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(dbName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel1)
-                    .addComponent(jScrollPane1)
-                    .addComponent(executeBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(16, 16, 16)
-                .addComponent(dbTable, javax.swing.GroupLayout.DEFAULT_SIZE, 269, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(executeBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(dbTable, javax.swing.GroupLayout.DEFAULT_SIZE, 294, Short.MAX_VALUE)
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -120,11 +104,9 @@ public class IndexViewPanel extends javax.swing.JPanel implements Observer {
     }//GEN-LAST:event_executeBtnActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel dbName;
     private quick.dbtable.DBTable dbTable;
     private javax.swing.JButton executeBtn;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextArea queryText;
     // End of variables declaration//GEN-END:variables
@@ -133,7 +115,6 @@ public class IndexViewPanel extends javax.swing.JPanel implements Observer {
 	public void update(Observable o, Object arg) {
 		
 		db = model.getDbFile();
-		dbName.setText(db.getPath());
 		queryText.setEnabled(true);
 		executeBtn.setEnabled(true);
 		
@@ -161,7 +142,7 @@ public class IndexViewPanel extends javax.swing.JPanel implements Observer {
 //	}
 	public void runQuery(String qry){
 		try {
-			dbTable.refresh(model.queryIndex(qry));
+			dbTable.refresh(model.executeQuery(qry));
 		} catch (SQLException ex) {
 			Logger.getLogger(IndexViewPanel.class.getName()).log(Level.SEVERE, null, ex);
 		}
