@@ -1,17 +1,20 @@
 package fr.seki.duphunter.gui;
 
-import fr.seki.duphunter.SimpleExtFileFilter;
 import fr.seki.duphunter.IndexController;
 import fr.seki.duphunter.IndexModel;
+import fr.seki.duphunter.SimpleExtFileFilter;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Observable;
 import java.util.Observer;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import static javax.swing.Action.ACCELERATOR_KEY;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
 /**
@@ -38,8 +41,8 @@ public class MainFrame extends javax.swing.JFrame implements Observer {
 		optionsPanel.setModelController(control);
 		optionsPanel.setParentFrame(this);
 		optionsPanel.retrieveConfig();
-		fileOpenMenuItem.setAction(chooseDBAction);
-		fileQuitMenuItem.setAction(quitAction);
+		fileOpenMenuItem.setAction(new ChooseDBAction());
+		fileQuitMenuItem.setAction(new QuitAction());
 	}
 
 	/**
@@ -118,11 +121,9 @@ public class MainFrame extends javax.swing.JFrame implements Observer {
         });
         menuFile.add(fileNewMenuItem);
 
-        fileOpenMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
         fileOpenMenuItem.setText("Open...");
         menuFile.add(fileOpenMenuItem);
 
-        fileQuitMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Q, java.awt.event.InputEvent.CTRL_MASK));
         fileQuitMenuItem.setText("Quit");
         menuFile.add(fileQuitMenuItem);
 
@@ -181,7 +182,11 @@ public class MainFrame extends javax.swing.JFrame implements Observer {
 		}
     }//GEN-LAST:event_fileNewMenuItemActionPerformed
 
-	private Action chooseDBAction = new AbstractAction("Open...") {
+	class ChooseDBAction extends AbstractAction {
+		public ChooseDBAction(){
+			putValue(NAME, "Open...");//same as super("Open...");
+			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
+		}
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			String cwd = System.getProperty("user.dir");
@@ -195,12 +200,20 @@ public class MainFrame extends javax.swing.JFrame implements Observer {
 			}
 		}
 	};
-	private Action quitAction = new AbstractAction("Quit") {
+	
+	class QuitAction extends AbstractAction {
+
+		public QuitAction() {
+			putValue(NAME, "Quit");
+			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.CTRL_MASK));
+		}
+		
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			System.exit(0);
 		}
 	};
+	
 	private Action dbSelectedAction = new AbstractAction() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
