@@ -1,5 +1,6 @@
 package fr.seki.duphunter;
 
+import fr.seki.dbupdater.DbUpdater;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -57,7 +58,7 @@ public class IndexModel extends Observable {
 	 * Open the connection to a SQLite database
 	 * @param dbfile the file database
 	 */
-	public void connectToDBFile(File dbfile) {
+	private void connectToDBFile(File dbfile, boolean silentUpgrade) {
 		try {
 			c = DriverManager.getConnection("jdbc:sqlite:" + dbfile.getCanonicalPath().replace("\\", "/"));
 			c.setAutoCommit(false);
@@ -66,6 +67,11 @@ public class IndexModel extends Observable {
 		} catch (IOException ex) {
 			Logger.getLogger(IndexModel.class.getName()).log(Level.SEVERE, null, ex);
 		}
+		
+		DbUpdater dbu = new DbUpdater(c);
+		if (!dbu.checkAndUpgrade(silentUpgrade))
+			return;
+		
 		dbFile = dbfile;
 		setChanged();
 		notifyObservers();
@@ -150,14 +156,18 @@ public class IndexModel extends Observable {
 	 * @param f 
 	 */
 	void initDBFile(File f) {
-		connectToDBFile(f);
-		SqliteDbDumper.createStruct(c);
+		connectToDBFile(f, true);
+		//SqliteDbDumper.createStruct(c);
 	}
 
+	void connectDBFile(File f){
+		connectToDBFile(f, false);
+	}
+	
 	/**
 	 * Reconnect to the last used database file
 	 */
 	void reconnect() {
-		connectToDBFile(dbFile);
+		connectToDBFile(dbFile, false);
 	}
 }

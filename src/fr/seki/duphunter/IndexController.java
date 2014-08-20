@@ -27,7 +27,7 @@ public class IndexController {
 	 */
 	public void openDB(File f) {
 		if (f.exists()) {
-			model.connectToDBFile(f);
+			model.connectDBFile(f);
 		}
 	}
 
