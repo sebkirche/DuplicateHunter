@@ -1,15 +1,19 @@
 package fr.seki.duphunter;
 
 import fr.seki.dbupdater.DbUpdater;
+import fr.seki.duphunter.gui.OptionsPanel;
+import fr.seki.duphunter.gui.SourceData;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Observable;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.configuration.ConfigurationException;
@@ -17,6 +21,7 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 
 /**
  * Stores the data model for file index
+ *
  * @author Sebastien
  */
 public class IndexModel extends Observable {
@@ -56,6 +61,7 @@ public class IndexModel extends Observable {
 
 	/**
 	 * Open the connection to a SQLite database
+	 *
 	 * @param dbfile the file database
 	 */
 	private void connectToDBFile(File dbfile, boolean silentUpgrade) {
@@ -67,11 +73,12 @@ public class IndexModel extends Observable {
 		} catch (IOException ex) {
 			Logger.getLogger(IndexModel.class.getName()).log(Level.SEVERE, null, ex);
 		}
-		
+
 		DbUpdater dbu = new DbUpdater(c);
-		if (!dbu.checkAndUpgrade(silentUpgrade))
+		if (!dbu.checkAndUpgrade(silentUpgrade)) {
 			return;
-		
+		}
+
 		dbFile = dbfile;
 		setChanged();
 		notifyObservers();
@@ -81,8 +88,9 @@ public class IndexModel extends Observable {
 	 * Close the current SQLite connection
 	 */
 	public void disconnect() {
-		if(c == null)
+		if (c == null) {
 			return;
+		}
 		try {
 			if (!c.isClosed()) {
 				c.close();
@@ -94,7 +102,8 @@ public class IndexModel extends Observable {
 
 	/**
 	 * getter for the database
-	 * @return 
+	 *
+	 * @return
 	 */
 	public File getDbFile() {
 		return dbFile;
@@ -115,7 +124,8 @@ public class IndexModel extends Observable {
 
 	/**
 	 * getter for the PropertiesConfiguration NOTE : this could be abstracted ...
-	 * @return 
+	 *
+	 * @return
 	 */
 	public PropertiesConfiguration getConfig() {
 		return cfg;
@@ -145,6 +155,7 @@ public class IndexModel extends Observable {
 
 	/**
 	 * Return the extension used for index databases
+	 *
 	 * @return the extension (without the '.')
 	 */
 	public String getDbExtension() {
@@ -153,21 +164,81 @@ public class IndexModel extends Observable {
 
 	/**
 	 * Initialize a new database : create the file and fill some objects in the structure
-	 * @param f 
+	 *
+	 * @param f
 	 */
 	void initDBFile(File f) {
 		connectToDBFile(f, true);
 		//SqliteDbDumper.createStruct(c);
 	}
 
-	void connectDBFile(File f){
+	void connectDBFile(File f) {
 		connectToDBFile(f, false);
 	}
-	
+
 	/**
 	 * Reconnect to the last used database file
 	 */
 	void reconnect() {
 		connectToDBFile(dbFile, false);
+	}
+
+	public Vector<SourceData> getSources() {
+		final String qry = "select path, active from sources;";
+		final Vector<SourceData> vec = new Vector<SourceData>();
+		vec.removeAllElements();
+
+		Thread runner = new Thread() {
+			@Override
+			public void run() {
+				try {
+					Statement stmt = c.createStatement();
+					ResultSet rs = stmt.executeQuery(qry);
+
+					while (rs.next()) {
+						String src = rs.getString(1);
+						boolean active = rs.getBoolean(2);
+						vec.addElement(new SourceData(src, active));
+					}
+					rs.close();
+					stmt.close();
+
+				} catch (SQLException ex) {
+					Logger.getLogger(OptionsPanel.class.getName()).log(Level.SEVERE, null, ex);
+				}
+
+			}
+		};
+		runner.run();
+		return vec;
+	}
+
+	public void setSources(final Vector<SourceData> v) {
+		final String del = "delete from Sources;"; //truncate
+		final String ins = "insert or replace into Sources (path, active) values (?, ?);";
+		Thread runner = new Thread() {
+			public void run() {
+				try {
+					Statement dstmt = c.createStatement();
+					dstmt.executeUpdate(del);
+					dstmt.close();
+					
+					PreparedStatement istmt = c.prepareStatement(ins);
+					for(int i = 0; i < v.size(); i++){
+						SourceData src = v.elementAt(i);
+						istmt.setString(1, src.path);
+						istmt.setBoolean(2, src.active);
+						istmt.addBatch();
+					}
+					istmt.executeBatch();
+					istmt.close();
+					c.commit();
+					
+				} catch (SQLException ex) {
+					Logger.getLogger(IndexModel.class.getName()).log(Level.SEVERE, null, ex);
+				}
+			}
+		};
+		runner.run();
 	}
 }

@@ -4,26 +4,30 @@ import fr.seki.duphunter.IndexController;
 import fr.seki.duphunter.IndexModel;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
+import static javax.swing.event.TableModelEvent.DELETE;
+import static javax.swing.event.TableModelEvent.INSERT;
+import javax.swing.table.AbstractTableModel;
 
 /**
  *
  * @author Sebastien
  */
 public class OptionsPanel extends javax.swing.JPanel implements Observer {
-
+	
 	private IndexModel model = null;
 	private MainFrame parent = null;
-	private final DefaultListModel sourcesListModel = new DefaultListModel();
+	private SourcesTableModel srcTableModel = new SourcesTableModel();
 	private boolean isConnected = false;
 	boolean ignoreEmpty;
 	private IndexController control;
@@ -33,7 +37,14 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
 	 */
 	public OptionsPanel() {
 		initComponents();
-		sourcesList.setModel(sourcesListModel);
+
+		//react to selections
+		sourcesTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				updateGui();
+			}
+		});
 	}
 
 	/**
@@ -44,8 +55,8 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        sourcesList = new javax.swing.JList();
+        sourcesScroll = new javax.swing.JScrollPane();
+        sourcesTable = new javax.swing.JTable();
         removeSrcBtn = new javax.swing.JButton();
         saveBtn = new javax.swing.JButton();
         addDirBtn = new javax.swing.JButton();
@@ -53,17 +64,10 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
         refreshAllBtn = new javax.swing.JButton();
         addRepoBtn = new javax.swing.JButton();
 
-        sourcesList.setModel(new javax.swing.AbstractListModel() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
-        sourcesList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
-                sourcesListValueChanged(evt);
-            }
-        });
-        jScrollPane1.setViewportView(sourcesList);
+        sourcesTable.setModel(srcTableModel);
+        sourcesTable.setColumnSelectionAllowed(true);
+        sourcesScroll.setViewportView(sourcesTable);
+        sourcesTable.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
         removeSrcBtn.setText("Remove selected");
         removeSrcBtn.setEnabled(false);
@@ -116,11 +120,8 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(saveBtn))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jScrollPane1)
+                        .addComponent(sourcesScroll, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(removeSrcBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -130,52 +131,45 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
                         .addComponent(refreshSingleBtn)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(refreshAllBtn)
-                        .addGap(0, 273, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 147, Short.MAX_VALUE)
+                        .addComponent(saveBtn)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(30, 30, 30)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(sourcesScroll, javax.swing.GroupLayout.DEFAULT_SIZE, 138, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(removeSrcBtn)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(addDirBtn)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(addRepoBtn)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE))
+                        .addComponent(addRepoBtn)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(refreshSingleBtn)
-                    .addComponent(refreshAllBtn))
-                .addGap(7, 7, 7)
-                .addComponent(saveBtn)
+                    .addComponent(refreshAllBtn)
+                    .addComponent(saveBtn))
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
     private void saveBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveBtnActionPerformed
-
-		PropertiesConfiguration cfg = model.getConfig();
-		cfg.setProperty("repo", Collections.list(sourcesListModel.elements()));
-		cfg.setProperty("ignoreEmpty", ignoreEmpty);
-		model.saveConfig();
-
+		
+		model.setSources(srcTableModel.getData());
 
     }//GEN-LAST:event_saveBtnActionPerformed
 
-    private void sourcesListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_sourcesListValueChanged
-		updateGui();
-    }//GEN-LAST:event_sourcesListValueChanged
-
     private void removeSrcBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeSrcBtnActionPerformed
-		int i = sourcesList.getSelectedIndex();
+		int i = sourcesTable.getSelectedRow();
 		while (i > -1) {
-			sourcesListModel.remove(i);
-			i = sourcesList.getSelectedIndex();
+			srcTableModel.removeRow(i);
+			sourcesTable.tableChanged(new TableModelEvent(srcTableModel, i, i, TableModelEvent.ALL_COLUMNS, DELETE));
+			i = sourcesTable.getSelectedRow();
 		}
+		sourcesTable.repaint();
     }//GEN-LAST:event_removeSrcBtnActionPerformed
 
     private void addDirBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addDirBtnActionPerformed
@@ -187,20 +181,26 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
 		jfs.setAcceptAllFileFilterUsed(false);
 		if (jfs.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
 			for (File f : jfs.getSelectedFiles()) {
-				try {
-					sourcesListModel.addElement(f.getCanonicalFile());
-				} catch (IOException ex) {
-					Logger.getLogger(OptionsPanel.class.getName()).log(Level.SEVERE, null, ex);
-				}
+				addPathToList(f);
 			}
+			sourcesTable.repaint();
 		}
     }//GEN-LAST:event_addDirBtnActionPerformed
+	
+	private void addPathToList(File f) {
+		try {
+			int r = srcTableModel.addRow(new SourceData(f.getCanonicalPath(), true));
+			sourcesTable.tableChanged(new TableModelEvent(srcTableModel, r, r, TableModelEvent.ALL_COLUMNS, INSERT));
+		} catch (IOException ex) {
+			Logger.getLogger(OptionsPanel.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
 
     private void refreshSingleBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshSingleBtnActionPerformed
 		int i;
-		int[] sel = sourcesList.getSelectedIndices();
+		int[] sel = sourcesTable.getSelectedRows();
 		for (i = 0; i < sel.length; i++) {
-			String s = (String) sourcesListModel.get(sel[i]);
+			String s = (String) srcTableModel.getValueAt(sel[i], 0);
 			control.index(s);
 		}
     }//GEN-LAST:event_refreshSingleBtnActionPerformed
@@ -209,12 +209,14 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
 		String repo = JOptionPane.showInputDialog(this, "Enter the repositiory path", "svn://");
 
 		//TODO sanity check for repository validity
-		sourcesListModel.addElement(repo);
+		int r = srcTableModel.addRow(new SourceData(repo, true));
+		sourcesTable.tableChanged(new TableModelEvent(srcTableModel, r, r, TableModelEvent.ALL_COLUMNS, INSERT));
+		sourcesTable.repaint();
     }//GEN-LAST:event_addRepoBtnActionPerformed
 
     private void refreshAllBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshAllBtnActionPerformed
-		for (Iterator it = Collections.list(sourcesListModel.elements()).iterator(); it.hasNext();) {
-			String s = (String) it.next();
+		for (int i = 0; i < srcTableModel.getRowCount(); i++) {
+			String s = (String) srcTableModel.getValueAt(i, 0);
 			control.index(s);
 		}
     }//GEN-LAST:event_refreshAllBtnActionPerformed
@@ -222,48 +224,138 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addDirBtn;
     private javax.swing.JButton addRepoBtn;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JButton refreshAllBtn;
     private javax.swing.JButton refreshSingleBtn;
     private javax.swing.JButton removeSrcBtn;
     private javax.swing.JButton saveBtn;
-    private javax.swing.JList sourcesList;
+    private javax.swing.JScrollPane sourcesScroll;
+    private javax.swing.JTable sourcesTable;
     // End of variables declaration//GEN-END:variables
-
-	public void retrieveConfig() {
-		PropertiesConfiguration cfg = model.getConfig();
-
-		for (String r : cfg.getStringArray("repo")) {
-			sourcesListModel.addElement(r);
-		}
-	}
 
 	void setModel(IndexModel model) {
 		this.model = model;
 		model.addObserver(this);
 	}
-
+	
 	void setParentFrame(MainFrame parent) {
 		this.parent = parent;
 	}
-
+	
 	@Override
 	public void update(Observable o, Object arg) {
 		isConnected = true;
+		
+		srcTableModel.retrieveData();
+		sourcesTable.tableChanged(new TableModelEvent(srcTableModel));
+		sourcesTable.repaint();
+		
 		updateGui();
 	}
-
+	
 	private void updateGui() {
 		boolean sourceSelected;
-
-		sourceSelected = (sourcesList.getSelectedIndex() > -1);
-
+		
+		sourceSelected = (sourcesTable.getSelectedRow() > -1);
+		
 		removeSrcBtn.setEnabled(sourceSelected);
 		refreshSingleBtn.setEnabled(sourceSelected && isConnected);
 		refreshAllBtn.setEnabled(isConnected);
 	}
-
+	
 	void setModelController(IndexController control) {
 		this.control = control;
+	}
+	
+	private class ColumnData {
+		
+		String name;
+		int alignment;
+		
+		public ColumnData(String name, int alignment) {
+			this.name = name;
+			this.alignment = alignment;
+		}
+	}
+	
+	private class SourcesTableModel extends AbstractTableModel {
+		
+		protected ColumnData[] colNames = {new ColumnData("Source", JLabel.LEFT), new ColumnData("Active?", JLabel.CENTER)};
+		protected Vector<SourceData> vec;
+		
+		public SourcesTableModel() {
+		}
+		
+		@Override
+		public int getRowCount() {
+			return vec == null ? 0 : vec.size();
+		}
+		
+		@Override
+		public int getColumnCount() {
+			return colNames.length;
+		}
+		
+		@Override
+		public String getColumnName(int column) {
+			return colNames[column].name;
+		}
+		
+		@Override
+		public Class getColumnClass(int c) {
+			return getValueAt(0, c).getClass();
+		}
+		
+		@Override
+		public Object getValueAt(int rowIndex, int columnIndex) {
+			if (rowIndex < 0 || rowIndex > getRowCount()) {
+				return "";
+			}
+			SourceData src = (SourceData) vec.elementAt(rowIndex);
+			switch (columnIndex) {
+				case 0:
+					return src.path;
+				case 1:
+					return src.active;
+				default:
+					return "";
+			}
+			
+		}
+		
+		@Override
+		public void setValueAt(Object value, int rowIndex, int columnIndex) {
+			SourceData src = vec.elementAt(rowIndex);
+			switch (columnIndex) {
+				case 0:
+					src.path = (String) value;
+					break;
+				case 1:
+					src.active = (boolean) value;
+					break;
+			}
+		}
+		
+		public void removeRow(int row) {
+			vec.remove(row);
+		}
+		
+		public int addRow(SourceData data) {
+			vec.add(data);
+			return vec.size() - 1;
+		}
+		
+		@Override
+		public boolean isCellEditable(int row, int col) {
+			return true;
+		}
+		
+		public void retrieveData() {
+			vec = model.getSources();
+		}
+		
+		Vector<SourceData> getData() {
+			return vec;
+		}
+		
 	}
 }

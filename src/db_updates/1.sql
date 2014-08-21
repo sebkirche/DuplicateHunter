@@ -7,6 +7,9 @@ create table if not exists FileIndex (
 	author text,
 	size   int              not null
 );
-
 create index if not exists repo_idx on FileIndex (repo);
 
+create table if not exists Sources (
+	path text unique on conflict replace,
+	active boolean default false
+);

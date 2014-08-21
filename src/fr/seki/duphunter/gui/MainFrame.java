@@ -40,7 +40,6 @@ public class MainFrame extends javax.swing.JFrame implements Observer {
 		optionsPanel.setModel(model);
 		optionsPanel.setModelController(control);
 		optionsPanel.setParentFrame(this);
-		optionsPanel.retrieveConfig();
 		fileOpenMenuItem.setAction(new ChooseDBAction());
 		fileQuitMenuItem.setAction(new QuitAction());
 	}
@@ -92,10 +91,10 @@ public class MainFrame extends javax.swing.JFrame implements Observer {
                 .addContainerGap()
                 .addGroup(frameContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(tabbedPane)
-                    .addGroup(frameContentLayout.createSequentialGroup()
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, frameContentLayout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(dbLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 536, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(dbLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         frameContentLayout.setVerticalGroup(
