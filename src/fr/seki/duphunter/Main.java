@@ -43,7 +43,7 @@ public class Main {
 		}
 
 		HelpFormatter help = new HelpFormatter();
-		help.printHelp("SVNHelper <options>", "options:", supportedOpts, null);
+		help.printHelp("java -jar DuplicateHunter.jar <options>", "options:", supportedOpts, null);
 	}
 
 	/**
