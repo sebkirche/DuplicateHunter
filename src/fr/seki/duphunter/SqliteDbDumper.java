@@ -1,7 +1,8 @@
 package fr.seki.duphunter;
 
-import java.util.List;
 import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.List;
 import org.sqlite.SQLiteConfig;
 
 /**
@@ -91,6 +92,7 @@ public class SqliteDbDumper implements IndexDumper {
 			PreparedStatement stmt;
 			stmt = cnx.prepareStatement("insert or replace into FileIndex (path, repo, name, hash, lastup, author, size) values (?, ?, ?, ?, ?, ?, ?);");
 			DefinedConsoleProgressor bar = new DefinedConsoleProgressor(index.size());
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
 			long c=0;
 			System.out.println("Saving into " + db + "... ");
 			for (IndexNode node : index) {
@@ -102,7 +104,7 @@ public class SqliteDbDumper implements IndexDumper {
 				stmt.setString(2, node.getRepoRoot());
 				stmt.setString(3, node.getName());
 				stmt.setString(4, node.getChecksum());
-				stmt.setDate(5, new Date(node.getDate().getTime()));
+				stmt.setString(5, dateFormat.format(node.getDate()));
 				stmt.setString(6, node.getAuthor());
 				stmt.setLong(7, node.getSize());
 				stmt.executeUpdate();
