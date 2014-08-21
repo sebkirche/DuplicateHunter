@@ -11,10 +11,10 @@ import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -114,6 +114,7 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
         });
 
         saveBtn.setText("Save");
+        saveBtn.setEnabled(false);
         saveBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 saveBtnActionPerformed(evt);
@@ -121,6 +122,7 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
         });
 
         addDirBtn.setText("Add directory");
+        addDirBtn.setEnabled(false);
         addDirBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 addDirBtnActionPerformed(evt);
@@ -136,6 +138,7 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
         });
 
         refreshAllBtn.setText("Refresh all");
+        refreshAllBtn.setEnabled(false);
         refreshAllBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 refreshAllBtnActionPerformed(evt);
@@ -143,6 +146,7 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
         });
 
         addRepoBtn.setText("Add repositiory");
+        addRepoBtn.setEnabled(false);
         addRepoBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 addRepoBtnActionPerformed(evt);
@@ -295,8 +299,12 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
 		sourceSelected = (sourcesTable.getSelectedRow() > -1);
 		
 		removeSrcBtn.setEnabled(sourceSelected);
-		refreshSingleBtn.setEnabled(sourceSelected && isConnected);
+		refreshSingleBtn.setEnabled(sourceSelected);
+                
 		refreshAllBtn.setEnabled(isConnected);
+                addDirBtn.setEnabled(isConnected);
+                addRepoBtn.setEnabled(isConnected);
+                saveBtn.setEnabled(isConnected);
 	}
 	
 	void setModelController(IndexController control) {
@@ -317,7 +325,7 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
 	private class SourcesTableModel extends AbstractTableModel {
 		
 		protected ColumnData[] colNames = {new ColumnData("Source", JLabel.LEFT), new ColumnData("Active?", JLabel.CENTER)};
-		protected Vector<SourceData> data;
+		protected ArrayList<SourceData> data;
 		
 		public SourcesTableModel() {
 		}
@@ -347,7 +355,7 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
 			if (rowIndex < 0 || rowIndex > getRowCount()) {
 				return "";
 			}
-			SourceData src = (SourceData) data.elementAt(rowIndex);
+			SourceData src = (SourceData) data.get(rowIndex);
 			switch (columnIndex) {
 				case 0:
 					return src.path;
@@ -359,12 +367,12 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
 		}
 		
 		public SourceData getValueAt(int row){
-			return data.elementAt(row);
+			return data.get(row);
 		}
 		
 		@Override
 		public void setValueAt(Object value, int rowIndex, int columnIndex) {
-			SourceData src = data.elementAt(rowIndex);
+			SourceData src = data.get(rowIndex);
 			switch (columnIndex) {
 				case 0:
 					src.path = (String) value;
@@ -393,7 +401,7 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
 			data = model.getSources();
 		}
 		
-		Vector<SourceData> getData() {
+		ArrayList<SourceData> getData() {
 			return data;
 		}
 		

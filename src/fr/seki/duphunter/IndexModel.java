@@ -11,9 +11,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Observable;
-import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.configuration.ConfigurationException;
@@ -183,10 +183,9 @@ public class IndexModel extends Observable {
 		connectToDBFile(dbFile, false);
 	}
 
-	public Vector<SourceData> getSources() {
+	public ArrayList<SourceData> getSources() {
 		final String qry = "select path, active from sources;";
-		final Vector<SourceData> vec = new Vector<SourceData>();
-		vec.removeAllElements();
+		final ArrayList<SourceData> list = new ArrayList<SourceData>();
 
 		Thread runner = new Thread() {
 			@Override
@@ -198,7 +197,7 @@ public class IndexModel extends Observable {
 					while (rs.next()) {
 						String src = rs.getString(1);
 						boolean active = rs.getBoolean(2);
-						vec.addElement(new SourceData(src, active));
+						list.add(new SourceData(src, active));
 					}
 					rs.close();
 					stmt.close();
@@ -210,10 +209,10 @@ public class IndexModel extends Observable {
 			}
 		};
 		runner.run();
-		return vec;
+		return list;
 	}
 
-	public void setSources(final Vector<SourceData> v) {
+	public void setSources(final ArrayList<SourceData> l) {
 		final String del = "delete from Sources;"; //truncate
 		final String ins = "insert or replace into Sources (path, active) values (?, ?);";
 		Thread runner = new Thread() {
@@ -224,8 +223,8 @@ public class IndexModel extends Observable {
 					dstmt.close();
 					
 					PreparedStatement istmt = c.prepareStatement(ins);
-					for(int i = 0; i < v.size(); i++){
-						SourceData src = v.elementAt(i);
+					for(int i = 0; i < l.size(); i++){
+						SourceData src = l.get(i);
 						istmt.setString(1, src.path);
 						istmt.setBoolean(2, src.active);
 						istmt.addBatch();
