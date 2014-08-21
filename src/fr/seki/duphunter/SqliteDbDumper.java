@@ -107,8 +107,9 @@ public class SqliteDbDumper implements IndexDumper {
 				stmt.setString(5, dateFormat.format(node.getDate()));
 				stmt.setString(6, node.getAuthor());
 				stmt.setLong(7, node.getSize());
-				stmt.executeUpdate();
+				stmt.addBatch();
 			}
+                        stmt.executeBatch();
 			bar.progress(c);
 			System.out.println(" Done.");
 			stmt.close();
