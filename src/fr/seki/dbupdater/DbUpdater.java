@@ -100,15 +100,14 @@ public class DbUpdater {
 		current = getActualVersion();
 
 		/* check if at least we have the versioning structure */
-		if (current == -1
-				|| (lastAvail > 0 && current < lastAvail)) {
+		if (lastAvail > 0 && current < lastAvail) {
 
 			String msg;
 			int answer;
 			if (current ==-1){
 				msg = "This database schema needs to be updated.";
 			} else {
-				msg = String.format("This database schema is in version %d and needs to be updated to version %d", current, lastAvail);
+				msg = String.format("This database schema is in version %d and needs to be updated to version %d.", current, lastAvail);
 			}
 			msg += "\nDo you want to perform the upgrade?";
 			
