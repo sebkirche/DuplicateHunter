@@ -101,7 +101,7 @@ public class IndexModel extends Observable {
 	}
 
 	/**
-	 * getter for the database
+	 * getter for the database file
 	 *
 	 * @return
 	 */
@@ -109,7 +109,12 @@ public class IndexModel extends Observable {
 		return dbFile;
 	}
 
-	public ResultSet executeQuery(String sql) {
+        /**
+         * Execute an SQL query on the connection
+         * @param sql the query
+         * @return most often a {@link ResultSet} but it could be the text of an error message
+         */
+	public Object executeQuery(String sql) {
 		try {
 			Statement stmt = c.createStatement();
 			ResultSet rs = stmt.executeQuery(sql);
@@ -117,9 +122,9 @@ public class IndexModel extends Observable {
 			//reason : cf close() javadoc : When a Statement object is closed, its current ResultSet object, if one exists, is also closed.
 			return rs;
 		} catch (SQLException ex) {
-			Logger.getLogger(IndexModel.class.getName()).log(Level.SEVERE, null, ex);
+			//Logger.getLogger(IndexModel.class.getName()).log(Level.SEVERE, null, ex);
+                        return ex.getMessage();
 		}
-		return null; ///!!!
 	}
 
 	/**
