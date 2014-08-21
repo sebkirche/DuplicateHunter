@@ -73,45 +73,46 @@ public class FSIndexer extends Indexer {
 				);
 		
 		System.out.println(" Done. " + String.valueOf(files.size()) + " files found.");
-                System.out.println("Indexing files... ");
-		
-		int count = 0, emptyCount = 0;
-		DefinedConsoleProgressor bar = new DefinedConsoleProgressor(files.size());
 
-		for (File f : files) {
-			try {
-				/* try to have some visual progression */
-				count++;
-				if(count % 20 == 0)
-					bar.progress(count);
-				
-				if(f.length()==0){
-					emptyCount++;
-					continue;
-				}
-				
-				IndexNode node = new IndexNode();
-				node.setCanonicalPath(f.getCanonicalPath());
-				node.setRepoRoot(fsPath);
-				node.setName(f.getName());
-				node.setSize(f.length());
-				node.setDate(new Date());
-				Path p = Paths.get(f.toURI());
-				node.setAuthor(Files.getOwner(p, new LinkOption[]{LinkOption.NOFOLLOW_LINKS}).getName());
-				node.setChecksum(MD5.asHex(MD5.getHash(f)));
-				index.add(node);
-			} catch (IOException ex) {
-				System.err.println("Error while processing file " + f.getPath() + ": " + ex.getMessage());
-			}	
-		}
-		bar.progress(count);
-		System.out.print(" Done.");
-		if(emptyCount > 0)
-			System.out.print(" ("+String.valueOf(emptyCount)+" empty files ignored)");
-		System.out.println();
+                indexFiles(files, fsPath, index);
 
 		return index;
 	}
+
+    private void indexFiles(Collection<File> files, String fsPath, List<IndexNode> index) {
+        System.out.println("Indexing files... ");
+        int count = 0, emptyCount = 0;
+        DefinedConsoleProgressor bar = new DefinedConsoleProgressor(files.size());
+        for (File f : files) {
+            try {
+                /* try to have some visual progression */
+                count++;
+                if(count % 20 == 0)
+                    bar.progress(count);
+                if(f.length()==0){
+                    emptyCount++;
+                    continue;
+                }
+                IndexNode node = new IndexNode();
+                node.setCanonicalPath(f.getCanonicalPath());
+                node.setRepoRoot(fsPath);
+                node.setName(f.getName());
+                node.setSize(f.length());
+                node.setDate(new Date());
+                Path p = Paths.get(f.toURI());
+                node.setAuthor(Files.getOwner(p, new LinkOption[]{LinkOption.NOFOLLOW_LINKS}).getName());
+                node.setChecksum(MD5.asHex(MD5.getHash(f)));
+                index.add(node);
+            }catch (IOException ex) {
+                System.err.println("Error while processing file " + f.getPath() + ": " + ex.getMessage());
+            }
+        }
+        bar.progress(count);
+        System.out.print(" Done.");
+        if(emptyCount > 0)
+            System.out.print(" ("+String.valueOf(emptyCount)+" empty files ignored)");
+        System.out.println();
+    }
 
 	private void dumpToStdout(List<IndexNode> index) {
 		new StdoutDumper().dump(index, null);
