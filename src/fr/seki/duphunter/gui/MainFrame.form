@@ -4,7 +4,7 @@
   <NonVisualComponents>
     <Component class="javax.swing.JFileChooser" name="fileChooser">
       <Properties>
-        <Property name="dialogTitle" type="java.lang.String" value="Selection d&apos;une base"/>
+        <Property name="dialogTitle" type="java.lang.String" value="Select a database"/>
       </Properties>
     </Component>
     <Menu class="javax.swing.JMenuBar" name="menuBar">

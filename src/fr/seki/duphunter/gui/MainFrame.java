@@ -71,7 +71,7 @@ public class MainFrame extends javax.swing.JFrame implements Observer {
         menuHelp = new javax.swing.JMenu();
         helpAboutMenuItem = new javax.swing.JMenuItem();
 
-        fileChooser.setDialogTitle("Selection d'une base");
+        fileChooser.setDialogTitle("Select a database");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Duplicate Hunter");
@@ -174,7 +174,7 @@ public class MainFrame extends javax.swing.JFrame implements Observer {
             fileChooser.setCurrentDirectory(new File(cwd));
             fileChooser.setFileFilter(new SimpleExtFileFilter(model.getDbExtension()));
 
-            int returnVal = fileChooser.showSaveDialog(MainFrame.this);
+            int returnVal = fileChooser.showOpenDialog(MainFrame.this);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 selectedFile = fileChooser.getSelectedFile();
                 dbSelectedAction.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
@@ -196,7 +196,7 @@ public class MainFrame extends javax.swing.JFrame implements Observer {
             fileChooser.setCurrentDirectory(new File(cwd));
             fileChooser.setFileFilter(new SimpleExtFileFilter(ext));
 
-            int returnVal = fileChooser.showOpenDialog(MainFrame.this);
+            int returnVal = fileChooser.showSaveDialog(MainFrame.this);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 File f = fileChooser.getSelectedFile();
                 String path = f.getPath();
