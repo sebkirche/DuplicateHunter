@@ -2,8 +2,16 @@ package fr.seki.duphunter.gui;
 
 import fr.seki.duphunter.IndexController;
 import fr.seki.duphunter.IndexModel;
+import fr.seki.duphunter.SVNWorkingCopyHelper;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDropEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Vector;
@@ -43,6 +51,34 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				updateGui();
+			}
+		});
+
+		//react to drop files / directories
+		sourcesScroll.setDropTarget(new DropTarget() {
+			@Override
+			public synchronized void drop(DropTargetDropEvent dtde) {
+				dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
+				Transferable t = dtde.getTransferable();
+				try {
+					List<File> fileList = (List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
+					SVNWorkingCopyHelper svnhelper = new SVNWorkingCopyHelper();
+
+					for (File f : fileList) {
+						if(f.isDirectory()){
+							String repoUrl = svnhelper.getRepoUrl(f);
+							if(repoUrl != null)
+								addPathToList(repoUrl);
+							else
+								addPathToList(f.getCanonicalPath());
+						}
+					}
+				} catch (UnsupportedFlavorException ex) {
+					Logger.getLogger(OptionsPanel.class.getName()).log(Level.SEVERE, null, ex);
+				} catch (IOException ex) {
+					Logger.getLogger(OptionsPanel.class.getName()).log(Level.SEVERE, null, ex);
+				}
+				
 			}
 		});
 	}
@@ -181,19 +217,19 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
 		jfs.setAcceptAllFileFilterUsed(false);
 		if (jfs.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
 			for (File f : jfs.getSelectedFiles()) {
-				addPathToList(f);
+				try {
+					addPathToList(f.getCanonicalPath());
+				} catch (IOException ex) {
+					Logger.getLogger(OptionsPanel.class.getName()).log(Level.SEVERE, null, ex);
+				}
 			}
 			sourcesTable.repaint();
 		}
     }//GEN-LAST:event_addDirBtnActionPerformed
 	
-	private void addPathToList(File f) {
-		try {
-			int r = srcTableModel.addRow(new SourceData(f.getCanonicalPath(), true));
-			sourcesTable.tableChanged(new TableModelEvent(srcTableModel, r, r, TableModelEvent.ALL_COLUMNS, INSERT));
-		} catch (IOException ex) {
-			Logger.getLogger(OptionsPanel.class.getName()).log(Level.SEVERE, null, ex);
-		}
+	private void addPathToList(String path) {
+		int r = srcTableModel.addRow(new SourceData(path, true));
+		sourcesTable.tableChanged(new TableModelEvent(srcTableModel, r, r, TableModelEvent.ALL_COLUMNS, INSERT));
 	}
 
     private void refreshSingleBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshSingleBtnActionPerformed
@@ -216,8 +252,9 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
 
     private void refreshAllBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshAllBtnActionPerformed
 		for (int i = 0; i < srcTableModel.getRowCount(); i++) {
-			String s = (String) srcTableModel.getValueAt(i, 0);
-			control.index(s);
+			SourceData sd = srcTableModel.getValueAt(i);
+			if(sd.active)
+				control.index(sd.path);
 		}
     }//GEN-LAST:event_refreshAllBtnActionPerformed
 
@@ -280,14 +317,14 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
 	private class SourcesTableModel extends AbstractTableModel {
 		
 		protected ColumnData[] colNames = {new ColumnData("Source", JLabel.LEFT), new ColumnData("Active?", JLabel.CENTER)};
-		protected Vector<SourceData> vec;
+		protected Vector<SourceData> data;
 		
 		public SourcesTableModel() {
 		}
 		
 		@Override
 		public int getRowCount() {
-			return vec == null ? 0 : vec.size();
+			return data == null ? 0 : data.size();
 		}
 		
 		@Override
@@ -310,7 +347,7 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
 			if (rowIndex < 0 || rowIndex > getRowCount()) {
 				return "";
 			}
-			SourceData src = (SourceData) vec.elementAt(rowIndex);
+			SourceData src = (SourceData) data.elementAt(rowIndex);
 			switch (columnIndex) {
 				case 0:
 					return src.path;
@@ -319,12 +356,15 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
 				default:
 					return "";
 			}
-			
+		}
+		
+		public SourceData getValueAt(int row){
+			return data.elementAt(row);
 		}
 		
 		@Override
 		public void setValueAt(Object value, int rowIndex, int columnIndex) {
-			SourceData src = vec.elementAt(rowIndex);
+			SourceData src = data.elementAt(rowIndex);
 			switch (columnIndex) {
 				case 0:
 					src.path = (String) value;
@@ -336,12 +376,12 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
 		}
 		
 		public void removeRow(int row) {
-			vec.remove(row);
+			data.remove(row);
 		}
 		
-		public int addRow(SourceData data) {
-			vec.add(data);
-			return vec.size() - 1;
+		public int addRow(SourceData sd) {
+			data.add(sd);
+			return data.size() - 1;
 		}
 		
 		@Override
@@ -350,11 +390,11 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
 		}
 		
 		public void retrieveData() {
-			vec = model.getSources();
+			data = model.getSources();
 		}
 		
 		Vector<SourceData> getData() {
-			return vec;
+			return data;
 		}
 		
 	}

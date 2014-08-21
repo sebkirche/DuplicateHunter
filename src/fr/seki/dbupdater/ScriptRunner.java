@@ -4,7 +4,10 @@ package fr.seki.dbupdater;
  * Slightly modified version of the com.ibatis.common.jdbc.ScriptRunner class
  * from the iBATIS Apache project. Only removed dependency on Resource class
  * and a constructor
+ *
+ * See http://stackoverflow.com/questions/1497569/how-to-execute-sql-script-file-using-jdbc
  */
+
 /*
  *  Copyright 2004 Clinton Begin
  *

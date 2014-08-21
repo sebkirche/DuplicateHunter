@@ -21,7 +21,7 @@ import javax.security.auth.callback.ConfirmationCallback;
 import javax.swing.JOptionPane;
 
 /**
- * Database schema migrator
+ * Database schema migrator.
  * @author Sebastien
  */
 public class DbUpdater {
