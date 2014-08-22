@@ -98,7 +98,7 @@ public class FSIndexer extends Indexer {
                 node.setRepoRoot(fsPath);
                 node.setName(f.getName());
                 node.setSize(f.length());
-                node.setDate(new Date());
+                node.setDate(new Date(f.lastModified()));
                 Path p = Paths.get(f.toURI());
                 node.setAuthor(Files.getOwner(p, new LinkOption[]{LinkOption.NOFOLLOW_LINKS}).getName());
                 node.setChecksum(MD5.asHex(MD5.getHash(f)));

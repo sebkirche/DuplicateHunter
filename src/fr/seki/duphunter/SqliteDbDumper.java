@@ -1,13 +1,15 @@
 package fr.seki.duphunter;
 
 import java.sql.*;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.TimeZone;
 import org.sqlite.SQLiteConfig;
 
 /**
  * Dump indexed files into a SQLite database
- * 
+ *
  * @author Sebastien
  */
 public class SqliteDbDumper implements IndexDumper {
@@ -92,24 +94,28 @@ public class SqliteDbDumper implements IndexDumper {
 			PreparedStatement stmt;
 			stmt = cnx.prepareStatement("insert or replace into FileIndex (path, repo, name, hash, lastup, author, size) values (?, ?, ?, ?, ?, ?, ?);");
 			DefinedConsoleProgressor bar = new DefinedConsoleProgressor(index.size());
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
-			long c=0;
+			TimeZone tz = TimeZone.getTimeZone("UTC");
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+			df.setTimeZone(tz);
+
+			long c = 0;
 			System.out.println("Saving into " + db + "... ");
 			for (IndexNode node : index) {
 				c++;
-				if(c % 20 == 0)
+				if (c % 20 == 0) {
 					bar.progress(c);
+				}
 				path = node.getCanonicalPath();
 				stmt.setString(1, path);
 				stmt.setString(2, node.getRepoRoot());
 				stmt.setString(3, node.getName());
 				stmt.setString(4, node.getChecksum());
-				stmt.setString(5, dateFormat.format(node.getDate()));
+				stmt.setString(5, df.format(node.getDate()));
 				stmt.setString(6, node.getAuthor());
 				stmt.setLong(7, node.getSize());
 				stmt.addBatch();
 			}
-                        stmt.executeBatch();
+			stmt.executeBatch();
 			bar.progress(c);
 			System.out.println(" Done.");
 			stmt.close();
