@@ -4,11 +4,21 @@ import fr.seki.duphunter.IndexController;
 import fr.seki.duphunter.IndexModel;
 import fr.seki.duphunter.SimpleExtFileFilter;
 import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.IOException;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
@@ -45,6 +55,28 @@ public class MainFrame extends javax.swing.JFrame implements Observer {
         fileNewMenuItem.setAction(new NewDBAction());
         fileOpenMenuItem.setAction(new ChooseDBAction());
         fileQuitMenuItem.setAction(new QuitAction());
+        
+        //react to drop files / directories
+        frameContent.setDropTarget(new DropTarget() {
+            @Override
+            public synchronized void drop(DropTargetDropEvent dtde) {
+                dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
+                Transferable t = dtde.getTransferable();
+                try {
+                    List<File> fileList = (List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
+                    //consider only first droped file
+                    File f = fileList.get(0);
+                    if (f.isFile() && f.getName().endsWith("."+model.getDbExtension()))
+                        control.openDB(f);
+                } catch (UnsupportedFlavorException ex) {
+                    Logger.getLogger(OptionsPanel.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(OptionsPanel.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
+            }
+        });
+
     }
 
     /**
