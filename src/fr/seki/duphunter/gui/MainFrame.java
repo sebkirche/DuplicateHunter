@@ -38,7 +38,7 @@ public class MainFrame extends javax.swing.JFrame implements Observer {
     private IndexModel model;
     private IndexController control;
     private final int MENU_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-    public final String DH_VERSION = "0.2";
+    public final String DH_VERSION = "0.3";
 
     /**
      * Creates new form MainFrame
