@@ -1,0 +1,1592 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=windows-1257"
+ http-equiv="Content-Type">
+  <title>SQLiteJDBC Usage</title>
+</head>
+<body>
+<ul id="mozToc">
+<!--mozToc h1 1 h2 2 h3 3 h4 4 h5 5 h6 6-->
+  <li><a href="#mozTocId859907">Getting Started</a></li>
+  <li><a href="#mozTocId211187"></a></li>
+  <li><a href="#mozTocId628310">SQLiteJDBC Usage</a>
+    <ul>
+      <li><a href="#mozTocId316368">Hurry up and close your ResultSet!</a></li>
+      <li><a href="#mozTocId866636">Queries are cheap</a></li>
+      <li><a href="#mozTocId319203">When in doubt, use PreparedStatement</a></li>
+      <li><a href="#mozTocId552558">Transactions are good</a></li>
+      <li><a href="#mozTocId937278">Use the JDBC batch routines</a></li>
+      <li><a href="#mozTocId587686">Manifest Typing</a></li>
+    </ul>
+  </li>
+  <li><a href="#mozTocId422908">Date and Time</a></li>
+  <li><a href="#mozTocId57758">Custom Functions</a>
+    <ul>
+      <li><a href="#mozTocId551873">Basic Example</a></li>
+      <li><a href="#mozTocId76276">Aggregate Functions</a></li>
+      <li><a href="#mozTocId925375">Triggers</a></li>
+      <li><a href="#mozTocId560971">Arguments and Results</a></li>
+      <li><a href="#mozTocId258552">SQLite Is Serverless</a></li>
+      <li><a href="#mozTocId932557">SQLite Is A Zero-Configuration
+Database</a></li>
+      <li><a href="#mozTocId18791">1.0 File Locking And Concurrency In
+SQLite Version 3</a></li>
+      <li><a href="#mozTocId225893">2.0 Overview</a></li>
+      <li><a href="#mozTocId117128">3.0 Locking</a></li>
+      <li><a href="#mozTocId407430">4.0 The Rollback Journal</a>
+        <ul>
+          <li><a href="#mozTocId796523">4.1 Dealing with hot journals</a></li>
+          <li><a href="#mozTocId570064">4.2 Deleting stale master
+journals</a></li>
+        </ul>
+      </li>
+      <li><a href="#mozTocId804977">5.0 Writing to a database file</a>
+        <ul>
+          <li><a href="#mozTocId976017">5.1 Writer starvation</a></li>
+        </ul>
+      </li>
+      <li><a href="#mozTocId995866">6.0 How To Corrupt Your Database
+Files</a></li>
+      <li><a href="#mozTocId816712">7.0 Transaction Control At The SQL
+Level</a></li>
+    </ul>
+  </li>
+  <li><a href="#mozTocId721928">SQLite - Scrolling Cursor</a></li>
+  <li><a href="#mozTocId810876">Datatypes In SQLite Version 3</a>
+    <ul>
+      <li><a href="#mozTocId545931">1.0 Storage Classes and Datatypes</a>
+        <ul>
+          <li><a href="#mozTocId951104">1.1 Boolean Datatype</a></li>
+          <li><a href="#mozTocId595811">1.2 Date and Time Datatype</a></li>
+        </ul>
+      </li>
+      <li><a href="#mozTocId496165">2.0 Type Affinity</a>
+        <ul>
+          <li><a href="#mozTocId264088">2.1 Determination Of Column
+Affinity</a></li>
+          <li><a href="#mozTocId680520">2.2 Affinity Name Examples</a></li>
+          <li><a href="#mozTocId262631">2.3 Column Affinity Behavior
+Example</a></li>
+        </ul>
+      </li>
+      <li><a href="#mozTocId141373">3.0 Comparison Expressions</a>
+        <ul>
+          <li><a href="#mozTocId369572">3.1 Sort Order</a></li>
+          <li><a href="#mozTocId142505">3.2 Affinity Of Comparison
+Operands</a></li>
+          <li><a href="#mozTocId573686">3.3 Type Conversions Prior To
+Comparison</a></li>
+          <li><a href="#mozTocId776827">3.4 Comparison Example</a></li>
+        </ul>
+      </li>
+      <li><a href="#mozTocId964320">4.0 Operators</a></li>
+      <li><a href="#mozTocId257759">5.0 Sorting, Grouping and Compound
+SELECTs</a></li>
+      <li><a href="#mozTocId316484">6.0 Collating Sequences</a>
+        <ul>
+          <li><a href="#mozTocId543114">6.1 Assigning Collating
+Sequences from SQL</a></li>
+          <li><a href="#mozTocId268772">6.2 Collation Sequence Examples</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+<p><br>
+</p>
+<p><br>
+</p>
+<h1><a class="mozTocH1" name="mozTocId859907"></a>Getting Started</h1>
+<pre><a href="http://www.zentus.com/sqlitejdbc/">http://www.zentus.com/sqlitejdbc/</a></pre>
+<br>
+<p>Read the <a href="#usage">usage</a> page for the full story.</p>
+<pre>import java.sql.*;<br><br>public class Test {<br>  public static void main(String[] args) throws Exception {<br>    Class.forName("org.sqlite.JDBC");<br>    Connection conn =<br>      DriverManager.getConnection("jdbc:sqlite:test.db");<br>    Statement stat = conn.createStatement();<br>    stat.executeUpdate("drop table if exists people;");<br>    stat.executeUpdate("create table people (name, occupation);");<br>    PreparedStatement prep = conn.prepareStatement(<br>      "insert into people values (?, ?);");<br><br>    prep.setString(1, "Gandhi");<br>    prep.setString(2, "politics");<br>    prep.addBatch();<br>    prep.setString(1, "Turing");<br>    prep.setString(2, "computers");<br>    prep.addBatch();<br>    prep.setString(1, "Wittgenstein");<br>    prep.setString(2, "smartypants");<br>    prep.addBatch();<br><br>    conn.setAutoCommit(false);<br>    prep.executeBatch();<br>    conn.setAutoCommit(true);<br><br>    ResultSet rs = stat.executeQuery("select * from people;");<br>    while (rs.next()) {<br>      System.out.println("name = " + rs.getString("name"));<br>      System.out.println("job = " + rs.getString("occupation"));<br>    }<br>    rs.close();<br>    conn.close();<br>  }<br>}<br></pre>
+<p>Run with:</p>
+<pre>java -cp .:sqlitejdbc-v056.jar Test</pre>
+<p>
+There are also some details on <a href="#date">date handling</a> and
+<a href="#custom">custom functions</a>.
+</p>
+<h1><a class="mozTocH1" name="mozTocId211187"></a><br>
+</h1>
+<h1><a class="mozTocH1" name="mozTocId628310"></a><a name="usage"></a>SQLiteJDBC
+Usage</h1>
+<p>SQLite is <a href="#SQLite">serverless</a>.
+This may sound harmless at first, indeed, SQLite seems to work just
+like MySQL or PostgreSQL when you wind up the JDBC driver for the first
+time. But there are some important differences you need to think about.</p>
+<h2><a class="mozTocH2" name="mozTocId316368"></a>Hurry up and close
+your ResultSet!</h2>
+<p>
+Only one Connection can write to the database at a time. That's right,
+the <b>entire database locks</b>. Moreover, no write can finish while
+there is an open reader. The full and gory details are discussed on
+the <a href="#SQLite_locking">locking page</a>.
+This means you need to close your ResultSet, <b>fast</b>.
+</p>
+<h2><a class="mozTocH2" name="mozTocId866636"></a>Queries are cheap</h2>
+<p>
+Do a lot of queries. They are cheap. Tasks that you would do on a full
+DBMS with esoteric features such as cursors should be done on SQLite
+with multiple queries. A good example of this is
+<a href="#cursor">scrolling cursors</a>.
+</p>
+<h2><a class="mozTocH2" name="mozTocId319203"></a>When in doubt, use
+PreparedStatement</h2>
+<p>
+This holds true for any database, but with SQLite, you get further
+benefits. When you call:
+</p>
+<pre>PreparedStatement prep = conn.prepareStatement(<br>    "insert into mytable values (?);");</pre>
+<p>
+The SQL is parsed by SQLite into an intermediate
+form, waiting to be filled with a variable and executed. Reusing the
+PreparedStatement saves re-parsing the SQL.
+</p>
+<h2><a class="mozTocH2" name="mozTocId552558"></a>Transactions are good</h2>
+<p>
+Almost all writes should be done in a transaction. It is good form,
+and if you are doing a large number of updates, it offers great speed
+benefits. This is <b>slow</b>:
+</p>
+<pre>PreparedStatement prep = conn.prepareStatement(<br>    "insert into mytable values (?);");<br>for (int i=0; i &lt; 10000; i++) {<br>    prep.setInt(1, i);<br>    prep.executeUpdate();<br>}</pre>
+This is <b>fast</b>:
+<pre>PreparedStatement prep = conn.prepareStatement(<br>    "insert into mytable values (?);");<br>conn.setAutoCommit(false);<br>for (int i=0; i &lt; 10000; i++) {<br>    prep.setInt(1, i);<br>    prep.executeUpdate();<br>}<br>conn.commit();</pre>
+<p>
+This can be further improved with batch routines, but the transaction
+is the most important thing!
+</p>
+<h2><a class="mozTocH2" name="mozTocId937278"></a>Use the JDBC batch
+routines</h2>
+<p>
+JDBC provides many batch interfaces, allowing
+you to group tasks together. If you have a large set of statements to
+execute, batches will be slightly faster and much more organised:
+</p>
+<pre>PreparedStatement prep = conn.prepareStatement(<br>    "insert into mytable values (?);");<br>for (int i=0; i &lt; 10000; i++) {<br>    prep.setInt(1, i);<br>    prep.addBatch();<br>}<br>conn.setAutoCommit(false);<br>prep.executeBatch();<br>conn.commit();</pre>
+Easy.
+<h2><a class="mozTocH2" name="mozTocId587686"></a>Manifest Typing</h2>
+To quote the
+<a href="#data">SQLite documentation</a>:
+<blockquote>In SQLite version 3, the
+type of a value is associated with the value itself, not with the
+column or variable in which the value is stored. (This is sometimes
+called manifest typing.)
+</blockquote>
+<p>
+This is important if you use JDBC meta data. The <tt>getColumnType()</tt>
+function will return the type associated with the value in <b>the
+currently selected row</b>. This is different from other JDBC drivers.<br>
+</p>
+<p><br>
+</p>
+<h1><a class="mozTocH1" name="mozTocId422908"></a><a name="date"></a>Date
+and Time</h1>
+<p>
+SQLiteJDBC implements ResultSet getDate() / getTime() and
+PreparedStatement setDate() / setTime() in the only efficient way the
+JDBC spec allows for, which is storing the time as a 64-bit long of
+milliseconds since UTC.
+</p>
+<p>
+This does not conflict with the SQLite standard format as long as care
+is taken to transform the unix timestamp into what SQLite functions
+use, either at the point where the date is stored or when using it
+elsewhere in SQLite. For example:
+</p>
+<pre>prep = conn.prepareStatement("insert into test values (?);");<br>prep.setDate(1, new Date(1000));<br>prep.executeUpdate();<br><br>rs = stat.executeQuery("select * from test;");<br>rs.getString(1) == "1000";<br></pre>
+<p>
+In the above example the date is being stored as a unix timestamp. To
+store the date in the standard SQLite format, transform it with the
+datetime() and strftime() functions:
+</p>
+<pre>prep = conn.prepareStatement(<br>  "insert into test values datetime(? / 1000, 'unixepoch');");<br>prep.setDate(1, new Date(1092941466000));<br>prep.executeUpdate();<br><br>rs = stat.executeQuery("select * from test;");<br>assert(rs.getString(1).equals("2004-08-10 18:51:06"));<br><br>rs = stat.executeQuery("select strftime('%s', col1) * 1000 from test;");<br>assert(rs.getDate(1).equals(new Date(987654321)));<br></pre>
+<h1><a class="mozTocH1" name="mozTocId57758"></a><a name="custom"></a>Custom
+Functions</h1>
+<p>SQLiteJDBC provides a custom interface for creating custom functions
+accessible inside SQLite, written in Java.</p>
+<p>All you have to do is subclass <a
+ href="api/org/sqlite/Function.html">org.sqlite.Function</a> and
+implement <tt>xFunc()</tt>. Pass the new instance to Function.create()
+and SQLite is ready to call it.</p>
+<p><a href="api/index.html">JavaDoc</a></p>
+<h2><a class="mozTocH2" name="mozTocId551873"></a>Basic Example</h2>
+<pre>import java.sql.*;<br>import org.sqlite.Function;<br><br>public class Test {<br>    public static void main(String[] args) {<br>        Class.forName("org.sqlite.JDBC");<br>        Connection conn = DriverManager.getConnection("jdbc:sqlite:");<br><br>        Function.create(conn, "myFunc", new Function() {<br>            protected void xFunc() throws SQLException {<br>                System.out.println("myFunc called!");<br>            }<br>        });<br><br>        conn.createStatement().execute("select myFunc();");<br>        conn.close();<br>    }<br>}</pre>
+<h2><a class="mozTocH2" name="mozTocId76276"></a>Aggregate Functions</h2>
+<p>By subclassing <a href="api/org/sqlite/Function.Aggregate.html">Function.Aggregate</a>
+and implementing <tt>xStep()</tt> and <tt>xFinal()</tt> you can
+create an aggregate function. E.g.</p>
+<pre>Class.forName("org.sqlite.JDBC");<br>Connection conn = DriverManager.getConnection("jdbc:sqlite:");<br><br>Function.create(conn, "mySum", new Function.Aggregate() {<br>    private int sum = 0;<br>    protected void xStep() throws SQLException {<br>        sum += value_int(0);<br>    }<br>    protected void xFinal() throws SQLException {<br>        result(sum);<br>    }<br>});<br><br>Statement stat = conn.createStatement();<br>stat.executeUpdate("create table t1 (c1);");<br>stat.executeUpdate("insert into t1 values (2);");<br>stat.executeUpdate("insert into t1 values (4);");<br>stat.executeUpdate("insert into t1 values (3);");<br>ResultSet rs = stat.executeQuery("select mySum(c1) from t1;");<br>rs.next();<br>System.out.println("mySum = " + rs.getInt(1));</pre>
+<p>Prints <tt>mySum = 9</tt>. It is safe to use internal variables as
+every time an aggregate function is called it is <tt>clone()</tt>ed to
+ensure thread safety.</p>
+<h2><a class="mozTocH2" name="mozTocId925375"></a>Triggers</h2>
+<p>The most interesting use of custom functions are making SQLite
+triggers. This way your Java application can be informed of changes in
+your tables.</p>
+<pre>import java.sql.*;<br>import org.sqlite.Function;<br><br>public class Test {<br>    public static void main(String[] args) {<br>        Class.forName("org.sqlite.JDBC");<br>        Connection conn = DriverManager.getConnection("jdbc:sqlite:");<br><br>        Function.create(conn, "myFunc", new Function() {<br>            protected void xFunc() {<br>                System.out.println("database updated");<br>            }<br>        });<br><br>        Statement stat = conn.createStatement();<br>        stat.executeUpdate("create table table1 (col1, col2);");<br>        stat.executeUpdate(<br>            "create trigger trig1 after insert on table1 begin" +<br>            "    select callTrig();" +<br>            "end;"<br>        );<br><br>        stat.executeUpdate("insert into table1 values (1, 2);");<br>        conn.close();<br>    }<br>}</pre>
+<h2><a class="mozTocH2" name="mozTocId560971"></a>Arguments and Results</h2>
+<p>The protected functions <tt>value_&lt;type&gt;(int)</tt>, <tt>result(&lt;type&gt;)</tt>
+of org.sqlite.Function provide access to arguments and the ability to
+return a value.</p>
+<pre>Function.create(conn, "mySum", new Function() {<br>    protected void xFunc() throws SQLException {<br>        int s = 0;<br>        for (int i=0; i &lt; arg(); i++)<br>            s += value_int(i);<br>        result(s);<br>    }<br>});<br><br>ResultSet rs = conn.createStatement().execute(<br>    "select mySum(1, 3, 5);");<br>rs.next();<br><br>System.out.println(rs.getInt(1));</pre>
+<p>Prints <tt>9</tt>.</p>
+<p><br>
+<br>
+</p>
+<h2><a class="mozTocH2" name="mozTocId258552"></a><a name="SQLite"></a>SQLite
+Is Serverless</h2>
+<a href="http://sqlite.org/serverless.html">http://sqlite.org/serverless.html</a><br>
+<br>
+<p>
+Most SQL database engines are implemented as a separate server process.
+Programs that want to access the database communicate with the server
+using some kind of interprocess communication (typically TCP/IP) to
+send requests to the server and to receive back results. SQLite does
+not work this way. With SQLite, the process that wants to access the
+database reads and writes directly from the database files on disk.
+There is no intermediary server process.
+</p>
+<p>
+There are advantages and disadvantages to being serverless.
+The main advantage is that there is no separate server process
+to install, setup, configure, initialize, manage, and troubleshoot.
+This is one reason why SQLite is a "<a href="#zero">zero-configuration</a>"
+database engine. Programs that use SQLite require no administrative
+support for setting up the database engine before they are run.
+Any program that is able to access the disk is able to use an SQLite
+database.
+</p>
+<p>
+On the other hand, a database engine that uses a server can provide
+better protection from bugs in the client application - stray pointers
+in a client cannot corrupt memory on the server. And because a server
+is a single persistent process,
+it is able to control database access with more precision, allowing for
+finer grain locking and better concurrency.
+</p>
+<p>
+Most SQL database engines are client/server based. Of those that are
+serverless, SQLite is the only one
+known to this author that allows multiple applications
+to access the same database at the same time. </p>
+<p><br>
+</p>
+<h2><a class="mozTocH2" name="mozTocId932557"></a><a name="zero"></a>SQLite
+Is A Zero-Configuration Database</h2>
+<p>
+SQLite does not need to be "installed" before it is used. There is no
+"setup" procedure. There is no
+server process that needs to be started, stopped, or configured.
+There is
+no need for an administrator to create a new database instance or
+assign
+access permissions to users.
+SQLite uses no configuration files.
+Nothing needs to be done to tell the system that SQLite is running.
+No actions are required to recover after a system crash or power
+failure.
+There is nothing to troubleshoot.
+</p>
+<p>
+SQLite just works.
+</p>
+<p>
+Other database engines may run great once you get them going.
+But doing the initial installation and configuration can often
+be intimidating.
+</p>
+<h2><a class="mozTocH2" name="mozTocId18791"></a><a
+ name="SQLite_locking"></a>1.0 File Locking And Concurrency In SQLite
+Version 3</h2>
+<pre><a href="http://sqlite.org/lockingv3.html">http://sqlite.org/lockingv3.html</a></pre>
+<br>
+<p>SQLite <a href="http://sqlite.org/releaselog/3_0_0.html">Version
+3.0.0</a> introduced a new locking and journaling mechanism designed to
+improve concurrency over SQLite version 2
+and to reduce the writer starvation problem. The new mechanism also
+allows atomic commits of transactions
+involving multiple database files.
+This document describes the new locking mechanism.
+The intended audience is programmers who want to understand and/or
+modify
+the pager code and reviewers working to verify the design
+of SQLite version 3.
+</p>
+<p>This document was originally created in early 2004 when SQLite
+version 2
+was still in widespread use and was written to introduce
+the new concepts of SQLite version 3 to readers who were already
+familiar
+with SQLite version 2. But these days, most readers of this document
+have
+probably never seen SQLite version 2 and are only familiar with SQLite
+version 3. Nevertheless, this document continues to serve as an
+authoritative reference to how database file locking works in SQLite
+version 3.</p>
+<a name="overview"></a>
+<h2><a class="mozTocH2" name="mozTocId225893"></a>2.0 Overview</h2>
+<p>
+Locking and concurrency control are handled by the <a
+ href="http://www.sqlite.org/src/finfo?name=src/pager.c">
+pager module</a>.
+The pager module is responsible for making SQLite "ACID" (Atomic,
+Consistent, Isolated, and Durable). The pager module makes sure changes
+happen all at once, that either all changes occur or none of them do,
+that two or more processes do not try to access the database
+in incompatible ways at the same time, and that once changes have been
+written they persist until explicitly deleted. The pager also provides
+a memory cache of some of the contents of the disk file.</p>
+<p>The pager is unconcerned
+with the details of B-Trees, text encodings, indices, and so forth.
+From the point of view of the pager the database consists of
+a single file of uniform-sized blocks. Each block is called a
+"page" and is usually 1024 bytes in size. The pages are numbered
+beginning with 1. So the first 1024 bytes of the database are called
+"page 1" and the second 1024 bytes are call "page 2" and so forth. All
+other encoding details are handled by higher layers of the library. The
+pager communicates with the operating system using one of several
+modules (Examples:
+<a href="http://www.sqlite.org/src/finfo?name=src/os_unix.c">os_unix.c</a>,
+<a href="http://www.sqlite.org/src/finfo?name=src/os_win.c">os_win.c</a>)
+that
+provides a uniform abstraction for operating system services.
+</p>
+<p>The pager module effectively controls access for separate threads,
+or
+separate processes, or both. Throughout this document whenever the
+word "process" is written you may substitute the word "thread" without
+changing the truth of the statement.</p>
+<a name="locking"></a>
+<h2><a class="mozTocH2" name="mozTocId117128"></a>3.0 Locking</h2>
+<p>
+From the point of view of a single process, a database file
+can be in one of five locking states:
+</p>
+<p>
+</p>
+<table cellpadding="20">
+  <tbody>
+    <tr>
+      <td valign="top">UNLOCKED</td>
+      <td valign="top">
+No locks are held on the database. The database may be neither read nor
+written. Any internally cached data is considered suspect and subject
+to
+verification against the database file before being used. Other
+processes can read or write the database as their own locking states
+permit. This is the default state.
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">SHARED</td>
+      <td valign="top">
+      <a name="shared_lock"></a>The database may be read but not
+written. Any number of processes can hold SHARED locks at the same
+time, hence there can be
+many simultaneous readers. But no other thread or process is allowed
+to write to the database file while one or more SHARED locks are
+active.
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">RESERVED</td>
+      <td valign="top">
+      <a name="reserved_lock"></a>A RESERVED lock means that the
+process is planning on writing to the
+database file at some point in the future but that it is currently just
+reading from the file. Only a single RESERVED lock may be active at one
+time, though multiple SHARED locks can coexist with a single RESERVED
+lock.
+RESERVED differs from PENDING in that new SHARED locks can be acquired
+while there is a RESERVED lock.
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">PENDING</td>
+      <td valign="top">
+      <a name="pending_lock"></a>A PENDING lock means that the process
+holding the lock wants to write
+to the database as soon as possible and is just waiting on all current
+SHARED locks to clear so that it can get an EXCLUSIVE lock. No new
+SHARED locks are permitted against the database if
+a PENDING lock is active, though existing SHARED locks are allowed to
+continue.
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">EXCLUSIVE</td>
+      <td valign="top">
+      <a name="excl_lock"></a>An EXCLUSIVE lock is needed in order to
+write to the database file.
+Only one EXCLUSIVE lock is allowed on the file and no other locks of
+any kind are allowed to coexist with an EXCLUSIVE lock. In order to
+maximize concurrency, SQLite works to minimize the amount of time that
+EXCLUSIVE locks are held.
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>
+The operating system interface layer understands and tracks all five
+locking states described above. The pager module only tracks four of
+the five locking states.
+A PENDING lock is always just a temporary
+stepping stone on the path to an EXCLUSIVE lock and so the pager module
+does not track PENDING locks.
+</p>
+<a name="rollback"></a>
+<h2><a class="mozTocH2" name="mozTocId407430"></a>4.0 The Rollback
+Journal</h2>
+<p>When a process wants to change a database file (and it is not
+in <a href="http://sqlite.org/wal.html">WAL</a> mode), it
+first records the original unchanged database content
+in a <em>rollback journal</em>. The rollback journal is an ordinary
+disk file that is always located
+in the same directory or folder as the database file and has the
+same name as the database file with the addition of a <tt>-journal</tt>
+suffix. The rollback journal also records the initial
+size of the database so that if the database file grows it can be
+truncated
+back to its original size on a rollback.</p>
+<p>If SQLite is working with multiple databases at the same time
+(using the <a href="http://sqlite.org/lang_attach.html">ATTACH</a>
+command) then each database has its own rollback journal.
+But there is also a separate aggregate journal
+called the <em>master journal</em>.
+The master journal does not contain page data used for rolling back
+changes. Instead the master journal contains the names of the
+individual database rollback journals for each of the ATTACHed
+databases. Each of the individual database rollback journals also
+contain the name of the master journal.
+If there are no ATTACHed databases (or if none of the ATTACHed database
+is participating in the current transaction) no master journal is
+created and the normal rollback journal contains an empty string
+in the place normally reserved for recording the name of the master
+journal.</p>
+<a name="hotjrnl"></a>
+<p>A individual rollback journal is said to be <em>hot</em>
+if it needs to be rolled back
+in order to restore the integrity of its database. A hot journal is
+created when a process is in the middle of a database
+update and a program or operating system crash or power failure
+prevents the update from completing.
+Hot journals are an exception condition. Hot journals exist to recover
+from crashes and power failures.
+If everything is working correctly (that is, if there are no crashes or
+power failures)
+you will never get a hot journal.
+</p>
+<p>
+If no master journal is involved, then
+a journal is hot if it exists and has a non-zero header
+and its corresponding database file
+does not have a RESERVED lock.
+If a master journal is named in the file journal, then the file journal
+is hot if its master journal exists and there is no RESERVED
+lock on the corresponding database file.
+It is important to understand when a journal is hot so the
+preceding rules will be repeated in bullets:
+</p>
+<ul>
+  <li>A journal is hot if...
+    <ul>
+      <li>It exists, and</li>
+      <li>Its size is greater than 512 bytes, and</li>
+      <li>The journal header is non-zero and well-formed, and</li>
+      <li>Its master journal exists or the master journal name is an
+empty string, and</li>
+      <li>There is no RESERVED lock on the corresponding database file.</li>
+    </ul>
+  </li>
+</ul>
+<a name="hot_journals"></a>
+<h3><a class="mozTocH3" name="mozTocId796523"></a>4.1 Dealing with hot
+journals</h3>
+<p>
+Before reading from a a database file, SQLite always checks to see if
+that
+database file has a hot journal. If the file does have a hot journal,
+then
+the journal is rolled back before the file is read. In this way, we
+ensure
+that the database file is in a consistent state before it is read.
+</p>
+<p>When a process wants to read from a database file, it followed
+the following sequence of steps:
+</p>
+<ol>
+  <li>Open the database file and obtain a SHARED lock. If the SHARED
+lock cannot be obtained, fail immediately and return SQLITE_BUSY.</li>
+  <li>Check to see if the database file has a hot journal. If the file
+does not have a hot journal, we are done. Return immediately. If there
+is a hot journal, that journal must be rolled back by the subsequent
+steps of this algorithm.</li>
+  <li>Acquire a PENDING lock then an EXCLUSIVE lock on the database
+file. (Note: Do not acquire a RESERVED lock because that would make
+other processes think the journal was no longer hot.) If we fail to
+acquire these locks it means another process is already trying to do
+the rollback. In that case, drop all locks, close the database, and
+return SQLITE_BUSY. </li>
+  <li>Read the journal file and roll back the changes.</li>
+  <li>Wait for the rolled back changes to be written onto persistent
+storage. This protects the integrity of the database in case another
+power failure or crash occurs.</li>
+  <li>Delete the journal file (or truncate the journal to zero bytes in
+length if <a href="http://sqlite.org/pragma.html#pragma_journal_mode">PRAGMA
+journal_mode=TRUNCATE</a> is set, or zero the journal header if <a
+ href="http://sqlite.org/pragma.html#pragma_journal_mode">PRAGMA
+journal_mode=PERSIST</a> is set).</li>
+  <li>Delete the master journal file if it is safe to do so. This step
+is optional. It is here only to prevent stale master journals from
+cluttering up the disk drive. See the discussion below for details.</li>
+  <li>Drop the EXCLUSIVE and PENDING locks but retain the SHARED lock.</li>
+</ol>
+<p>After the algorithm above completes successfully, it is safe to read
+from the database file. Once all reading has completed, the
+SHARED lock is dropped.</p>
+<a name="stale_master_journals"></a>
+<h3><a class="mozTocH3" name="mozTocId570064"></a>4.2 Deleting stale
+master journals</h3>
+<p>A stale master journal is a master journal that is no longer being
+used for anything. There is no requirement that stale master journals
+be deleted. The only reason for doing so is to free up disk space.</p>
+<p>A master journal is stale if no individual file journals are
+pointing
+to it. To figure out if a master journal is stale, we first read the
+master journal to obtain the names of all of its file journals. Then
+we check each of those file journals. If any of the file journals named
+in the master journal exists and points back to the master journal,
+then
+the master journal is not stale. If all file journals are either
+missing
+or refer to other master journals or no master journal at all, then the
+master journal we are testing is stale and can be safely deleted.</p>
+<a name="writing"></a>
+<h2><a class="mozTocH2" name="mozTocId804977"></a>5.0 Writing to a
+database file</h2>
+<p>To write to a database, a process must first acquire a SHARED lock
+as described above (possibly rolling back incomplete changes if there
+is a hot journal). After a SHARED lock is obtained, a RESERVED lock
+must be acquired.
+The RESERVED lock signals that the process intends to write to the
+database at some point in the future. Only one process at a time
+can hold a RESERVED lock. But other processes can continue to read
+the database while the RESERVED lock is held.
+</p>
+<p>If the process that wants to write is unable to obtain a RESERVED
+lock, it must mean that another process already has a RESERVED lock.
+In that case, the write attempt fails and returns SQLITE_BUSY.</p>
+<p>After obtaining a RESERVED lock, the process that wants to write
+creates a rollback journal. The header of the journal is initialized
+with the original size of the database file. Space in the journal
+header
+is also reserved for a master journal name, though the master journal
+name is initially empty.</p>
+<p>Before making changes to any page of the database, the process
+writes
+the original content of that page into the rollback journal. Changes
+to pages are held in memory at first and are not written to the disk.
+The original database file remains unaltered, which means that other
+processes can continue to read the database.</p>
+<p>Eventually, the writing process will want to update the database
+file, either because its memory cache has filled up or because it is
+ready to commit its changes. Before this happens, the writer must
+make sure no other process is reading the database and that the
+rollback
+journal data is safely on the disk surface so that it can be used to
+rollback incomplete changes in the event of a power failure.
+The steps are as follows:</p>
+<ol>
+  <li>Make sure all rollback journal data has actually been written to
+the surface of the disk (and is not just being held in the operating
+system's or disk controllers cache) so that if a power failure occurs
+the data will still be there after power is restored.</li>
+  <li>Obtain a PENDING lock and then an EXCLUSIVE lock on the database
+file. If other processes still have SHARED locks, the writer might have
+to wait until those SHARED locks clear before it is able to obtain an
+EXCLUSIVE lock.</li>
+  <li>Write all page modifications currently held in memory out to the
+original database disk file.</li>
+</ol>
+<p>
+If the reason for writing to the database file is because the memory
+cache was full, then the writer will not commit right away. Instead,
+the writer might continue to make changes to other pages. Before
+subsequent changes are written to the database file, the rollback
+journal must be flushed to disk again. Note also that the EXCLUSIVE
+lock that the writer obtained in order to write to the database
+initially
+must be held until all changes are committed. That means that no other
+processes are able to access the database from the
+time the memory cache first spills to disk until the transaction
+commits.
+</p>
+<p>
+When a writer is ready to commit its changes, it executes the following
+steps:
+</p>
+<ol>
+  <li value="4"> Obtain an EXCLUSIVE lock on the database file and make
+sure all memory changes have been written to the database file using
+the algorithm of steps 1-3 above.</li>
+  <li>Flush all database file changes to the disk. Wait for those
+changes to actually be written onto the disk surface.</li>
+  <li>Delete the journal file. (Or if the <a
+ href="http://sqlite.org/pragma.html#pragma_journal_mode">PRAGMA
+journal_mode</a> is TRUNCATE or PERSIST, truncate the journal file or
+zero the header of the journal file, respectively.) This is the instant
+when the changes are committed. Prior to deleting the journal file, if
+a power failure or crash occurs, the next process to open the database
+will see that it has a hot journal and will roll the changes back.
+After the journal is deleted, there will no longer be a hot journal and
+the changes will persist. </li>
+  <li>Drop the EXCLUSIVE and PENDING locks from the database file. </li>
+</ol>
+<p>As soon as the PENDING lock is released from the database file,
+other
+processes can begin reading the database again. In the current
+implementation,
+the RESERVED lock is also released, but that is not essential. Future
+versions of SQLite might provide a "CHECKPOINT" SQL command that will
+commit all changes made so far within a transaction but retain the
+RESERVED lock so that additional changes can be made without given
+any other process an opportunity to write.</p>
+<p>If a transaction involves multiple databases, then a more complex
+commit sequence is used, as follows:</p>
+<ol>
+  <li value="4"> Make sure all individual database files have an
+EXCLUSIVE lock and a valid journal.
+  </li>
+  <li>Create a master-journal. The name of the master-journal is
+arbitrary. (The current implementation appends random suffixes to the
+name of the main database file until it finds a name that does not
+previously exist.) Fill the master journal with the names of all the
+individual journals and flush its contents to disk.
+  </li>
+  <li>Write the name of the master journal into all individual journals
+(in space set aside for that purpose in the headers of the individual
+journals) and flush the contents of the individual journals to disk and
+wait for those changes to reach the disk surface.
+  </li>
+  <li>Flush all database file changes to the disk. Wait for those
+changes to actually be written onto the disk surface.</li>
+  <li>Delete the master journal file. This is the instant when the
+changes are committed. Prior to deleting the master journal file, if a
+power failure or crash occurs, the individual file journals will be
+considered hot and will be rolled back by the next process that
+attempts to read them. After the master journal has been deleted, the
+file journals will no longer be considered hot and the changes will
+persist. </li>
+  <li>Delete all individual journal files.
+  </li>
+  <li>Drop the EXCLUSIVE and PENDING locks from all database files. </li>
+</ol>
+<a name="writer_starvation"></a>
+<h3><a class="mozTocH3" name="mozTocId976017"></a>5.1 Writer starvation</h3>
+<p>In SQLite version 2, if many processes are reading from the
+database,
+it might be the case that there is never a time when there are
+no active readers. And if there is always at least one read lock on the
+database, no process would ever be able to make changes to the database
+because it would be impossible to acquire a write lock. This situation
+is called <em>writer starvation</em>.</p>
+<p>SQLite version 3 seeks to avoid writer starvation through the use of
+the PENDING lock. The PENDING lock allows existing readers to continue
+but prevents new readers from connecting to the database. So when a
+process wants to write a busy database, it can set a PENDING lock which
+will prevent new readers from coming in. Assuming existing readers do
+eventually complete, all SHARED locks will eventually clear and the
+writer will be given a chance to make its changes.</p>
+<a name="how_to_corrupt"></a>
+<h2><a class="mozTocH2" name="mozTocId995866"></a>6.0 How To Corrupt
+Your Database Files</h2>
+<p>The pager module is very robust but it can be subverted. This
+section attempts to identify and explain the risks.
+(See also the <a href="http://sqlite.org/atomiccommit.html#sect_9_0">Things
+That Can Go Wrong</a> section of the article
+on <a href="http://sqlite.org/atomiccommit.html">Atomic Commit</a>.</p>
+<p>
+Clearly, a hardware or operating system fault that introduces incorrect
+data
+into the middle of the database file or journal will cause problems.
+Likewise, if a rogue process opens a database file or journal and
+writes malformed
+data into the middle of it, then the database will become corrupt.
+There is not much that can be done about these kinds of problems
+so they are given no further attention.
+</p>
+<p>
+SQLite uses POSIX advisory locks to implement locking on Unix. On
+Windows it uses the LockFile(), LockFileEx(), and UnlockFile() system
+calls. SQLite assumes that these system calls all work as advertised.
+If
+that is not the case, then database corruption can result. One should
+note that POSIX advisory locking is known to be buggy or even
+unimplemented
+on many NFS implementations (including recent versions of Mac OS X)
+and that there are reports of locking problems
+for network filesystems under Windows. Your best defense is to not
+use SQLite for files on a network filesystem.
+</p>
+<p>
+SQLite uses the fsync() system call to flush data to the disk under
+Unix and
+it uses the FlushFileBuffers() to do the same under Windows. Once
+again,
+SQLite assumes that these operating system services function as
+advertised.
+But it has been reported that fsync() and FlushFileBuffers() do not
+always
+work correctly, especially with inexpensive IDE disks. Apparently some
+manufactures of IDE disks have controller chips that report
+that data has reached the disk surface when in fact the data is still
+in volatile cache memory in the disk drive electronics. There are also
+reports that Windows sometimes chooses to ignore FlushFileBuffers() for
+unspecified reasons. The author cannot verify any of these reports.
+But if they are true, it means that database corruption is a
+possibility
+following an unexpected power loss. These are hardware and/or operating
+system bugs that SQLite is unable to defend against.
+</p>
+<a name="ext3-barrier-problem"></a>
+<p>If a Linux <a href="http://en.wikipedia.org/wiki/Ext3">ext3</a>
+filesystem is mounted without the "barrier=1" option
+in the <a href="http://en.wikipedia.org/wiki/fstab">/etc/fstab</a>
+and the disk drive write cache is enabled
+then filesystem corruption can occur following a power loss or OS
+crash.
+Whether or not corruption can occur depends on the details of the disk
+control
+hardware; corruption is more likely with inexpensive consumer-grade
+disks
+and less of a problem for enterprise-class storage devices with
+advanced
+features such as non-volatile write caches.
+Various ext3 experts
+<a
+ href="http://www.redhat.com/archives/ext3-users/2010-July/msg00001.html">confirm
+this behavior</a>.
+We are told that most Linux distributions do not use barrier=1 and do
+not disable the write cache so most
+Linux distributions are vulnerable to this problem. Note that this is
+an
+operating system and hardware issue and that there is nothing that
+SQLite
+can do to work around it. <a
+ href="http://ozlabs.org/%7Erusty/index.cgi/tech/2009-10-20.html">
+Other database engines</a> have also run into this same problem.</p>
+<p>
+If a crash or power failure occurs and results in a hot journal but
+that
+journal is deleted, the next process to open the database will not
+know that it contains changes that need to be rolled back. The rollback
+will not occur and the database will be left in an inconsistent state.
+Rollback journals might be deleted for any number of reasons:
+</p>
+<ul>
+  <li>An administrator might be cleaning up after an OS crash or power
+failure, see the journal file, think it is junk, and delete it.</li>
+  <li>Someone (or some process) might rename the database file but fail
+to also rename its associated journal.</li>
+  <li>If the database file has aliases (hard or soft links) and the
+file is opened by a different alias than the one used to create the
+journal, then the journal will not be found. To avoid this problem, you
+should not create links to SQLite database files.</li>
+  <li>Filesystem corruption following a power failure might cause the
+journal to be renamed or deleted.</li>
+</ul>
+<p>
+The last (fourth) bullet above merits additional comment. When SQLite
+creates
+a journal file on Unix, it opens the directory that contains that file
+and
+calls fsync() on the directory, in an effort to push the directory
+information
+to disk. But suppose some other process is adding or removing unrelated
+files to the directory that contains the database and journal at the
+moment of a power failure. The supposedly unrelated actions of this
+other
+process might result in the journal file being dropped from the
+directory and
+moved into "lost+found". This is an unlikely scenario, but it could
+happen.
+The best defenses are to use a journaling filesystem or to keep the
+database and journal in a directory by themselves.
+</p>
+<p>
+For a commit involving multiple databases and a master journal, if the
+various databases were on different disk volumes and a power failure
+occurs
+during the commit, then when the machine comes back up the disks might
+be remounted with different names. Or some disks might not be mounted
+at all. When this happens the individual file journals and the master
+journal might not be able to find each other. The worst outcome from
+this scenario is that the commit ceases to be atomic. Some databases
+might be rolled back and others might not. All databases will continue
+to be self-consistent.
+To defend against this problem, keep all databases
+on the same disk volume and/or remount disks using exactly the same
+names
+after a power failure.
+</p>
+<a name="transaction_control"></a>
+<h2><a class="mozTocH2" name="mozTocId816712"></a>7.0 Transaction
+Control At The SQL Level</h2>
+<p>
+The changes to locking and concurrency control in SQLite version 3 also
+introduce some subtle changes in the way transactions work at the SQL
+language level.
+By default, SQLite version 3 operates in <em>autocommit</em> mode.
+In autocommit mode,
+all changes to the database are committed as soon as all operations
+associated
+with the current database connection complete.</p>
+<p>The SQL command "BEGIN TRANSACTION" (the TRANSACTION keyword
+is optional) is used to take SQLite out of autocommit mode.
+Note that the BEGIN command does not acquire any locks on the database.
+After a BEGIN command, a SHARED lock will be acquired when the first
+SELECT statement is executed. A RESERVED lock will be acquired when
+the first INSERT, UPDATE, or DELETE statement is executed. No EXCLUSIVE
+lock is acquired until either the memory cache fills up and must
+be spilled to disk or until the transaction commits. In this way,
+the system delays blocking read access to the file file until the
+last possible moment.
+</p>
+<p>The SQL command "COMMIT" does not actually commit the changes to
+disk. It just turns autocommit back on. Then, at the conclusion of
+the command, the regular autocommit logic takes over and causes the
+actual commit to disk to occur.
+The SQL command "ROLLBACK" also operates by turning autocommit back on,
+but it also sets a flag that tells the autocommit logic to rollback
+rather
+than commit.</p>
+<p>If the SQL COMMIT command turns autocommit on and the autocommit
+logic
+then tries to commit change but fails because some other process is
+holding
+a SHARED lock, then autocommit is turned back off automatically. This
+allows the user to retry the COMMIT at a later time after the SHARED
+lock
+has had an opportunity to clear.</p>
+<p>If multiple commands are being executed against the same SQLite
+database
+connection at the same time, the autocommit is deferred until the very
+last command completes. For example, if a SELECT statement is being
+executed, the execution of the command will pause as each row of the
+result is returned. During this pause other INSERT, UPDATE, or DELETE
+commands can be executed against other tables in the database. But none
+of these changes will commit until the original SELECT statement
+finishes.<br>
+</p>
+<p><br>
+</p>
+<h1><a class="mozTocH1" name="mozTocId721928"></a><a name="cursor"></a>SQLite
+- Scrolling Cursor</h1>
+<pre><a href="http://www.sqlite.org/cvstrac/wiki?p=ScrollingCursor">http://www.sqlite.org/cvstrac/wiki?p=ScrollingCursor</a></pre>
+The basic method for extracting data from SQLite is to prepare
+a statement, step through the result set of the statement row
+by row, then finalize the statement. Here is pseudocode:
+<pre>   pStmt = sqlite3_prepare_v2("SELECT * FROM xyz");<br>   while( sqlite3_step(pStmt) ){<br>     /* Do something with the current row */<br>   }<br>   sqlite3_finalize(pStmt);<br></pre>
+<p>(Aside: The foregoing is pseudocode because the calling conventions
+for <a href="http://www.sqlite.org/capi3ref.html#sqlite3_prepare_v2">sqlite3_prepare_v2()</a>
+are not right. The function is simplified for clarity of presentation.
+Do not get hung up by this.)
+</p>
+<p>The sqlite3_step() function above
+seems to advance a cursor forwards through the
+result set. It is natural to then ask why there is not a
+corresponding sqlite3_step_backwards() function to move backwards
+through the result set. It seems like sqlite3_step_backwards() should
+be easy to implement, after all. Just step backwards through the
+result set instead of forwards...
+</p>
+<p>But it is not easy at all. In fact, the designers of
+SQLite have been unable to think
+of an algorithm that will do the job in the general case. Stepping
+backwards through the result set is easy for some special cases,
+such as the simple example query above. But things get more
+complicated, for example,
+if the query were really a 4-way LEFT OUTER JOIN with subqueries
+both in the result columns and in the WHERE clause.
+</p>
+<p>The problem is that
+the sqlite3_step() function does not step through a
+precomputed result set at all. A better and more realistic way to
+think about matters is to suppose that each prepared statement
+is really a computer program. You are running this program in a
+debugger and there is a breakpoint set on a single statement somewhere
+deep down inside the computation. Calling the sqlite3_step()
+function is like pressing the "Run" button in your debugger
+and thus asking the debugger to run the program until
+it either exits or hits the breakpoint. Sqlite3_step() returns
+SQLITE_ROW if it hits the breakpoint and SQLITE_DONE if it finishes.
+If you hit the breakpoint, you can then look at local variable in
+order to find the values of a "row". Then you can press the
+"Run" button (call sqlite3_step()) again to continue
+execution until the next breakpoint or until the program exits.
+</p>
+<p>From this point of view (which is much closer to how SQLite
+works on the inside)
+asking for an sqlite3_step_backward() button is really
+like expecting your symbolic debugger to be able to run
+backwards or to "undo" its
+execution back to the previous breakpoint. Nobody reasonably
+expects debuggers to be able to do this, so you shouldn't expect
+SQLite to be able to sqlite3_step_backward() either.
+</p>
+<p><strong class="two">Work Arounds</strong>
+</p>
+<p>The usual reason for wanting to move backwards through a query is
+that the programmer is working on an MP3 player of some kind. They
+want to query the database for all tracks that meet some criteria
+and then display the results in a scrolling window. Often this
+happens on a cellphone or some other display-limited device which
+can only show 5 lines of the 300 line result set. So the programmer
+calls sqlite3_step() 5 times, writes the results on the screen,
+then waits for the user to press the "Down" button to call
+sqlite3_step() 5 more times to display the next five lines, and
+so forth.
+</p>
+<p>There a couple of problems with this approach. First off, since
+neither sqlite3_reset() nor sqlite3_finalize() are called on the
+statement, the database is locked
+and other processes are unable to update it. But
+perhaps more seriously is that there is not a good way to respond
+when the user presses the "Up" button to scroll back up. There
+is no sqlite3_step_backwards() function in SQLite. It is normally
+at this point in the reasoning process that the programmer gets on
+the mailing list asking for how to "scroll backwards".
+</p>
+<p><strong>Rule Number 1:</strong> Do not leave queries open waiting
+for the user input.
+Run a query to fill up the screen with as much information
+as it will hold then reset() or finalize() the query statment.
+Get in, grab your data, then get out.
+Later on, when the user decides to scroll up or down (which will
+usually
+be eons of time later from the point of view of your CPU), run another
+query to refresh the screen with new data.
+</p>
+<p>Usually the list being displayed will be sorted.. Suppose you are
+wanting to display the "title" column of the "tracks" table. The
+secret is to remember the title of first and last entry current on
+display. Initialize the display using something like this:
+</p>
+<pre>     SELECT title FROM tracks<br>      WHERE singer='Madonna'<br>      ORDER BY title<br>      LIMIT 5;<br></pre>
+<p>(Disclaimer: The preceding is just an example. The author is only
+vaguely aware that Madonna is a singer, owns no Madonna tracks, knows
+the names of no songs sung by Madonna, and would be hard pressed to
+pick
+out Madonna from a photo line-up. This is just an example. In a
+real application you will want to substitute a different search
+criteria in the WHERE clause.)
+</p>
+<p>The LIMIT 5 clause is optional. You can omit the LIMIT 5 then
+just call sqlite3_finalize() on the statement after you get the
+first 5 rows out. It is not required to run sqlite3_step() until
+it returns SQLITE_DONE. You can cancel a query by calling
+sqlite3_finalize() or sqlite3_reset() at any time. The LIMIT 5
+clause is just for clarity.
+</p>
+<p>As the display is initialized, you must remember the first and
+last title being displayed in separate variables outside of
+SQLite. To scroll down, run this query:
+</p>
+<pre>    SELECT title FROM tracks<br>     WHERE singer='Madonna'<br>       AND title&gt;:lasttitle<br>     ORDER BY title<br>     LIMIT 5;<br></pre>
+<p>To scroll up, run this query:
+</p>
+<pre>    SELECT title FROM tracks<br>     WHERE singer='Madonna'<br>       AND title&lt;:firsttitle<br>     ORDER BY title DESC<br>     LIMIT 5;<br></pre>
+<p>For the scrolldown query, bind the name of the last title current
+on display to the :lasttitle parameter. For the scrollup query,
+bind the title of the first line currently being displayed to
+:firsttitle. On the scrollup query, the titles come out in
+reverse order. (Notice the DESC modifier on the ORDER BY clause!)
+As the new query runs and the display is refilled, be sure to
+remember the new first and last entry in case the user presses
+the Up or Down buttons again.
+</p>
+<p>Assuming you have an index like this:
+</p>
+<pre>   CREATE INDEX example1 ON tracks(singer, title);<br></pre>
+<p>then the scrollup and scrolldown queries above will be very
+efficient. Even if there are 300 million matching tracks,
+SQLite will jump right to the first one that you need (using
+a binary search), read off 5 more in quick succession, and
+be done. The queries will be very fast even on slow flash
+memory cards. The queries will continue to be fast even if
+they involve complex outer joins and subqueries (within
+reason). Fast, that is, assuming you have the indices
+set up right. (Setting up the indices right is a whole other
+story, though, which we will not go into here.)
+</p>
+<p><strong class="two">What Not To Do</strong>
+</p>
+<p>Another error that crops up frequently is programmers trying
+to implement a scrolling window using LIMIT and OFFSET. The
+idea here is that you first just remember the index of the top
+entry in the display and run a query like this:
+</p>
+<pre>    SELECT title FROM tracks<br>     WHERE singer='Madonna'<br>     ORDER BY title<br>     LIMIT 5 OFFSET :index<br></pre>
+<p>The index is initialized to 0. To scroll down just increment
+the index by 5 and rerun the query. To scroll up, decrement the
+index by 5 and rerun.
+</p>
+<p>The above will work actually. The problem is that it gets slow
+when the index gets large. The way OFFSET works in SQLite is
+that it causes the sqlite3_step() function to ignore the first
+:index breakpoints that it sees. So, for example, if :index is
+1000, you are really reading in 1005 entries and ignoring all
+but the last 5. The net effect is that scrolling starts to
+become sluggish as you get lower and lower in the list.
+</p>
+<p>Actually, depending on how big your list is and how fast your
+machine runs, you might easily get away with using OFFSET this
+way. OFFSET will often work OK on a workstation. But on
+battery powered devices with slow CPUs and slower mass storage,
+using the OFFSET approach usually breaks down when the list
+becomes large.
+</p>
+<p><strong>Rule Number 2:</strong> Do not try to implement a scrolling
+window
+using LIMIT and OFFSET. Doing so will become sluggish as the
+user scrolls down toward the bottom of the list.</p>
+<br>
+<a name="data"></a><br>
+<h1 align="center"><a class="mozTocH1" name="mozTocId810876"></a>Datatypes
+In SQLite Version 3</h1>
+<p>Most SQL database engines (every SQL database engine other than
+SQLite,
+as far as we know) uses static, rigid typing. With static typing, the
+datatype
+of a value is determined by its container - the particular column in
+which the value is stored.</p>
+<p>SQLite uses a more general dynamic type system. In SQLite, the
+datatype
+of a value is associated with the value itself, not with its container.
+The dynamic type system of SQLite is backwards
+compatible with the more common static type systems of other database
+engines
+in the sense that SQL statement that work on statically typed databases
+should
+work the same way in SQLite. However, the dynamic typing in SQLite
+allows
+it to do things which are not possible in traditional rigidly typed
+databases.</p>
+<a name="storageclasses"></a>
+<h2><a class="mozTocH2" name="mozTocId545931"></a>1.0 Storage Classes
+and Datatypes</h2>
+<p>Each value stored in an SQLite database (or manipulated by the
+database engine) has one of the following storage classes:</p>
+<ul>
+  <li>
+    <p><b>NULL</b>. The value is a NULL value.</p>
+  </li>
+  <li>
+    <p><b>INTEGER</b>. The value is a signed integer, stored in 1, 2,
+3, 4, 6, or 8 bytes depending on the magnitude of the value.</p>
+  </li>
+  <li>
+    <p><b>REAL</b>. The value is a floating point value, stored as an
+8-byte IEEE floating point number.</p>
+  </li>
+  <li>
+    <p><b>TEXT</b>. The value is a text string, stored using the
+database encoding (UTF-8, UTF-16BE or UTF-16LE).</p>
+  </li>
+  <li>
+    <p><b>BLOB</b>. The value is a blob of data, stored exactly as it
+was input.</p>
+  </li>
+</ul>
+<p>Note that a storage class is slightly more general than a datatype.
+The INTEGER storage class, for example, includes 6 different integer
+datatypes of different lengths. This makes a difference on disk. But
+as soon as INTEGER values are read off of disk and into memory for
+processing,
+they are converted to the most general datatype (8-byte signed
+integer).
+And so for the most part, "storage class" is indistinguishable from
+"datatype" and the two terms can be used interchangeably.</p>
+<p>Any column in an SQLite version 3 database,
+except an <a href="http://sqlite.org/lang_createtable.html#rowid">INTEGER
+PRIMARY KEY</a> column, may be used to store a value of any storage
+class.</p>
+<p>All values in SQL statements, whether they are literals embedded in
+SQL
+statement text or <a href="http://sqlite.org/lang_expr.html#varparam">parameters</a>
+bound to <a href="http://sqlite.org/c3ref/stmt.html">precompiled SQL
+statements</a>
+have an implicit storage class.
+Under circumstances described below, the
+database engine may convert values between numeric storage classes
+(INTEGER and REAL) and TEXT during query execution. </p>
+<a name="boolean"></a>
+<h3><a class="mozTocH3" name="mozTocId951104"></a>1.1 Boolean Datatype</h3>
+<p>SQLite does not have a separate Boolean storage class.
+Instead, Boolean values are stored as integers 0 (false) and 1 (true).</p>
+<a name="datetime"></a>
+<h3><a class="mozTocH3" name="mozTocId595811"></a>1.2 Date and Time
+Datatype</h3>
+<p>SQLite does not have a storage class set aside for storing
+dates and/or times.
+Instead, the built-in <a href="http://sqlite.org/lang_datefunc.html">Date
+And Time Functions</a> of SQLite are capable of storing dates and times
+as TEXT, REAL, or INTEGER values:</p>
+<ul>
+  <li><b>TEXT</b> as ISO8601 strings ("YYYY-MM-DD HH:MM:SS.SSS").
+  </li>
+  <li><b>REAL</b> as Julian day numbers, the number of days since
+noon in Greenwich on November 24, 4714 B.C. according to the
+proleptic Gregorian calendar.
+  </li>
+  <li><b>INTEGER</b> as Unix Time, the number of seconds since
+1970-01-01 00:00:00 UTC.
+  </li>
+</ul>
+<p>Applications can chose to store dates and times in any of these
+formats and freely convert between formats using the built-in date
+and time functions.</p>
+<a name="affinity"></a>
+<h2><a class="mozTocH2" name="mozTocId496165"></a>2.0 Type Affinity</h2>
+<p>
+In order to maximize compatibility between SQLite and other database
+engines, SQLite supports the concept of "type affinity" on columns.
+The type affinity of a column is the recommended type for data stored
+in that column. The important idea here is that the type is
+recommended, not
+required. Any column can still store any type of data.
+It is just that some columns, given the choice, will prefer to use
+one storage class over another. The preferred storage class for
+a column is called its "affinity".
+</p>
+<p>Each column in an SQLite 3 database is assigned one of the
+following type affinities:</p>
+<ul>
+  <li>TEXT</li>
+  <li>NUMERIC</li>
+  <li>INTEGER</li>
+  <li>REAL</li>
+  <li>NONE</li>
+</ul>
+<p>A column with TEXT affinity stores all data using storage classes
+NULL, TEXT or BLOB. If numerical data is inserted into a column with
+TEXT affinity it is converted into text form before being stored.</p>
+<p>A column with NUMERIC affinity may contain values using all five
+storage classes. When text data is inserted into a NUMERIC column, the
+storage class of the text is converted to INTEGER or REAL (in order of
+preference) if such conversion is lossless and reversible.
+For conversions between TEXT and REAL storage classes, SQLite considers
+the conversion to be lossless and reversible if the first 15
+significant
+decimal digits of the number are preserved.
+If the lossless conversion of TEXT to INTEGER or REAL is not possible
+then
+the value is stored using the TEXT storage class. No
+attempt is made to convert NULL or BLOB values.</p>
+<p>A string might look like a floating-point literal with
+a decimal point and/or exponent notation but as long as
+the value can be expressed as an integer, the NUMERIC affinity will
+convert
+it into an integer. Hence, the string '3.0e+5' is stored in a
+column with NUMERIC affinity as the integer 300000, not as the floating
+point value 300000.0.</p>
+<p>A column that uses INTEGER affinity behaves the same as a column
+with NUMERIC affinity. The difference between INTEGER and NUMERIC
+affinity
+is only evident in a <a
+ href="http://sqlite.org/lang_expr.html#castexpr">CAST expression</a>.</p>
+<p>A column with REAL affinity behaves like a column with NUMERIC
+affinity except that it forces integer values into floating point
+representation. (As an internal optimization, small floating point
+values with no fractional component and stored in columns with REAL
+affinity are written to disk as integers in order to take up less space
+and are automatically converted back into floating point as
+the value is read out.
+This optimization is completely invisible at the SQL level and can only
+be detected by examining the raw bits of the database file.)</p>
+<p>A column with affinity NONE does not prefer one storage class over
+another and no attempt is made to coerce data from one storage class
+into
+another.</p>
+<a name="affname"></a>
+<h3><a class="mozTocH3" name="mozTocId264088"></a>2.1 Determination Of
+Column Affinity</h3>
+<p>The affinity of a column is determined by the declared type
+of the column, according to the following rules in the order shown:</p>
+<ol>
+  <li>
+    <p>If the declared type contains the string "INT" then it is
+assigned INTEGER affinity.</p>
+  </li>
+  <li>
+    <p>If the declared type of the column contains any of the strings
+"CHAR", "CLOB", or "TEXT" then that column has TEXT affinity. Notice
+that the type VARCHAR contains the string "CHAR" and is thus assigned
+TEXT affinity.</p>
+  </li>
+  <li>
+    <p>If the declared type for a column contains the string "BLOB" or
+if no type is specified then the column has affinity NONE.</p>
+  </li>
+  <li>
+    <p>If the declared type for a column contains any of the strings
+"REAL", "FLOA", or "DOUB" then the column has REAL affinity.</p>
+  </li>
+  <li>
+    <p>Otherwise, the affinity is NUMERIC.</p>
+  </li>
+</ol>
+<p>Note that the order of the rules for determining column affinity
+is important. A column whose declared type is "CHARINT" will match
+both rules 1 and 2 but the first rule takes precedence and so the
+column affinity will be INTEGER.</p>
+<h3><a class="mozTocH3" name="mozTocId680520"></a>2.2 Affinity Name
+Examples</h3>
+<p>The following table shows how many common datatype names from
+more traditional SQL implementations are converted into affinities by
+the five rules of the
+previous section. This table shows only a small subset of the
+datatype names that SQLite will accept. Note that numeric arguments
+in parentheses that following the type name (ex: "VARCHAR(255)") are
+ignored by SQLite - SQLite does not impose any length restrictions
+(other than the large global <a
+ href="http://sqlite.org/limits.html#max_length">SQLITE_MAX_LENGTH</a>
+limit) on the length of
+strings, BLOBs or numeric values.</p>
+<blockquote>
+  <table border="1" cellpadding="5">
+    <tbody>
+      <tr>
+        <th>Example Typenames From The<br>
+CREATE TABLE Statement<br>
+or CAST Expression </th>
+        <th>Resulting Affinity </th>
+        <th>Rule Used To Determine Affinity
+        </th>
+      </tr>
+      <tr>
+        <td valign="top" align="center"> INT<br>
+INTEGER<br>
+TINYINT<br>
+SMALLINT<br>
+MEDIUMINT<br>
+BIGINT<br>
+UNSIGNED BIG INT<br>
+INT2<br>
+INT8
+        </td>
+        <td align="center">INTEGER
+        </td>
+        <td align="center">1
+        </td>
+      </tr>
+      <tr>
+        <td valign="top" align="center"> CHARACTER(20)<br>
+VARCHAR(255)<br>
+VARYING CHARACTER(255)<br>
+NCHAR(55)<br>
+NATIVE CHARACTER(70)<br>
+NVARCHAR(100)<br>
+TEXT<br>
+CLOB
+        </td>
+        <td align="center">TEXT
+        </td>
+        <td align="center">2
+        </td>
+      </tr>
+      <tr>
+        <td valign="top" align="center"> BLOB<br>
+        <i>no datatype specified</i>
+        </td>
+        <td align="center">NONE
+        </td>
+        <td align="center">3
+        </td>
+      </tr>
+      <tr>
+        <td valign="top" align="center"> REAL<br>
+DOUBLE<br>
+DOUBLE PRECISION<br>
+FLOAT
+        </td>
+        <td align="center">REAL
+        </td>
+        <td align="center">4
+        </td>
+      </tr>
+      <tr>
+        <td valign="top" align="center"> NUMERIC<br>
+DECIMAL(10,5)<br>
+BOOLEAN<br>
+DATE<br>
+DATETIME
+        </td>
+        <td align="center">NUMERIC
+        </td>
+        <td align="center">5
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+<p>Note that a declared type of "FLOATING POINT" would give INTEGER
+affinity, not REAL affinity, due to the "INT" at the end of "POINT".
+And the declared type of "STRING" has an affinity of NUMERIC, not TEXT.
+</p>
+<h3><a class="mozTocH3" name="mozTocId262631"></a>2.3 Column Affinity
+Behavior Example</h3>
+<p>The following SQL demonstrates how SQLite uses column affinity
+to do type conversions when values are inserted into a table.</p>
+<blockquote>
+  <pre>CREATE TABLE t1(<br>    t  TEXT,     -- text affinity by rule 2<br>    nu NUMERIC,  -- numeric affinity by rule 5<br>    i  INTEGER,  -- integer affinity by rule 1<br>    r  REAL,     -- real affinity by rule 4<br>    no BLOB      -- no affinity by rule 3<br>);<br><br>-- Values stored as TEXT, INTEGER, INTEGER, REAL, TEXT.<br>INSERT INTO t1 VALUES('500.0', '500.0', '500.0', '500.0', '500.0');<br>SELECT typeof(t), typeof(nu), typeof(i), typeof(r), typeof(no) FROM t1;<br>text|integer|integer|real|text<br><br>-- Values stored as TEXT, INTEGER, INTEGER, REAL, REAL.<br>DELETE FROM t1;<br>INSERT INTO t1 VALUES(500.0, 500.0, 500.0, 500.0, 500.0);<br>SELECT typeof(t), typeof(nu), typeof(i), typeof(r), typeof(no) FROM t1;<br>text|integer|integer|real|real<br><br>-- Values stored as TEXT, INTEGER, INTEGER, REAL, INTEGER.<br>DELETE FROM t1;<br>INSERT INTO t1 VALUES(500, 500, 500, 500, 500);<br>SELECT typeof(t), typeof(nu), typeof(i), typeof(r), typeof(no) FROM t1;<br>text|integer|integer|real|integer<br><br>-- BLOBs are always stored as BLOBs regardless of column affinity.<br>DELETE FROM t1;<br>INSERT INTO t1 VALUES(x'0500', x'0500', x'0500', x'0500', x'0500');<br>SELECT typeof(t), typeof(nu), typeof(i), typeof(r), typeof(no) FROM t1;<br>blob|blob|blob|blob|blob<br><br>-- NULLs are also unaffected by affinity<br>DELETE FROM t1;<br>INSERT INTO t1 VALUES(NULL,NULL,NULL,NULL,NULL);<br>SELECT typeof(t), typeof(nu), typeof(i), typeof(r), typeof(no) FROM t1;<br>null|null|null|null|null<br></pre>
+</blockquote>
+<a name="comparisons"></a>
+<h2><a class="mozTocH2" name="mozTocId141373"></a>3.0 Comparison
+Expressions</h2>
+<p>SQLite version 3 has the usual set of SQL comparison operators
+including "=", "==", "&lt;", "&lt;=", "&gt;", "&gt;=", "!=",
+"&lt;&gt;",
+"IN", "NOT IN", "BETWEEN", "IS", and "IS NOT", .
+</p>
+<h3><a class="mozTocH3" name="mozTocId369572"></a>3.1 Sort Order</h3>
+<p>The results of a comparison depend on the storage classes of the
+operands, according to the following rules:</p>
+<ul>
+  <li>
+    <p>A value with storage class NULL is considered less than any
+other value (including another value with storage class NULL).</p>
+  </li>
+  <li>
+    <p>An INTEGER or REAL value is less than any TEXT or BLOB value.
+When an INTEGER or REAL is compared to another INTEGER or REAL, a
+numerical comparison is performed.</p>
+  </li>
+  <li>
+    <p>A TEXT value is less than a BLOB value. When two TEXT values are
+compared an appropriate collating sequence is used to determine the
+result. </p>
+  </li>
+  <li>
+    <p>When two BLOB values are compared, the result is determined
+using memcmp().</p>
+  </li>
+</ul>
+<a name="expraff"></a>
+<h3><a class="mozTocH3" name="mozTocId142505"></a>3.2 Affinity Of
+Comparison Operands</h3>
+<p>SQLite may attempt to convert values between the storage classes
+INTEGER, REAL, and/or TEXT before performing a comparison.
+Whether or not any conversions are attempted before the comparison
+takes
+place depends on the affinity of the operands.
+Operand affinity is determined by the following rules:
+</p>
+<ul>
+  <li>
+    <p>An expression that is a simple reference to a column value has
+the same affinity as the column. Note that if X and Y.Z are column
+names, then +X and +Y.Z are considered expressions for the purpose of
+determining affinity.</p>
+  </li>
+  <li>
+    <p>An expression of the form "CAST(<i>expr</i> AS <i>type</i>)"
+has an affinity that is the same as a column with a declared type of "<i>type</i>".
+
+
+    </p>
+  </li>
+  <li>
+    <p>Otherwise, an expression has NONE affinity.
+    </p>
+  </li>
+</ul>
+<a name="compaff"></a>
+<h3><a class="mozTocH3" name="mozTocId573686"></a>3.3 Type Conversions
+Prior To Comparison</h3>
+<p>To "apply affinity" means to convert an operand to a particular
+storage
+class if and only if the conversion is lossless and reversible.
+Affinity is applied to operands of a comparison operator prior to
+the comparison according to the following rules in the order shown:</p>
+<ul>
+  <li>
+    <p>If one operand has INTEGER, REAL or NUMERIC affinity
+and the other operand as TEXT or NONE affinity
+then NUMERIC affinity is applied to other operand.
+    </p>
+  </li>
+  <li>
+    <p>If one operand has TEXT affinity and the other has NONE
+affinity,
+then TEXT affinity is applied to the other operand.
+    </p>
+  </li>
+  <li>
+    <p>Otherwise, no affinity is applied and both operands are compared
+as is.</p>
+  </li>
+</ul>
+<p>The expression "a BETWEEN b AND c" is treated as two separate
+binary comparisons "a &gt;= b AND a &lt;= c", even if that means
+different affinities are applied to 'a' in each of the comparisons.
+Datatype conversions in comparisons of the
+form "x IN (SELECT y ...)" are handled is if
+the comparison were really "x=y".
+The expression "a IN (x, y, z, ...)" is equivalent to "a = +x OR
+a = +y OR a = +z OR ...". In other words, the values to the right of
+the IN operator (the "x", "y",
+and "z" values in this example) are considered to have no affinity,
+even if they happen to be column values or CAST expressions. </p>
+<h3><a class="mozTocH3" name="mozTocId776827"></a>3.4 Comparison Example</h3>
+<blockquote>
+  <pre>CREATE TABLE t1(<br>    a TEXT,      -- text affinity<br>    b NUMERIC,   -- numeric affinity<br>    c BLOB,      -- no affinity<br>    d            -- no affinity<br>);<br><br>-- Values will be stored as TEXT, INTEGER, TEXT, and INTEGER respectively<br>INSERT INTO t1 VALUES('500', '500', '500', 500);<br>SELECT typeof(a), typeof(b), typeof(c), typeof(d) FROM t1;<br>text|integer|text|integer<br><br>-- Because column "a" has text affinity, numeric values on the<br>-- right-hand side of the comparisons are converted to text before<br>-- the comparison occurs.<br>SELECT a &lt; 40,   a &lt; 60,   a &lt; 600 FROM t1;<br>0|1|1<br><br>-- Text affinity is applied to the right-hand operands but since<br>-- they are already TEXT this is a no-op; no conversions occur.<br>SELECT a &lt; '40', a &lt; '60', a &lt; '600' FROM t1;<br>0|1|1<br><br>-- Column "b" has numeric affinity and so numeric affinity is applied<br>-- to the operands on the right.  Since the operands are already numeric,<br>-- the application of affinity is a no-op; no conversions occur.  All<br>-- values are compared numerically.<br>SELECT b &lt; 40,   b &lt; 60,   b &lt; 600 FROM t1;<br>0|0|1<br><br>-- Numeric affinity is applied to operands on the right, converting them<br>-- from text to integers.  Then a numeric comparison occurs.<br>SELECT b &lt; '40', b &lt; '60', b &lt; '600' FROM t1;<br>0|0|1<br><br>-- No affinity conversions occur.  Right-hand side values all have<br>-- storage class INTEGER which are always less than the TEXT values<br>-- on the left.<br>SELECT c &lt; 40,   c &lt; 60,   c &lt; 600 FROM t1;<br>0|0|0<br><br>-- No affinity conversions occur.  Values are compared as TEXT.<br>SELECT c &lt; '40', c &lt; '60', c &lt; '600' FROM t1;<br>0|1|1<br><br>-- No affinity conversions occur.  Right-hand side values all have<br>-- storage class INTEGER which compare numerically with the INTEGER<br>-- values on the left.<br>SELECT d &lt; 40,   d &lt; 60,   d &lt; 600 FROM t1;<br>0|0|1<br><br>-- No affinity conversions occur.  INTEGER values on the left are<br>-- always less than TEXT values on the right.<br>SELECT d &lt; '40', d &lt; '60', d &lt; '600' FROM t1;<br>1|1|1<br></pre>
+</blockquote>
+<p>All of the result in the example are the same if the comparisons are
+commuted - if expressions of the form "a&lt;40" are rewritten
+as "40&gt;a".
+</p>
+<h2><a class="mozTocH2" name="mozTocId964320"></a>4.0 Operators</h2>
+<p>All mathematical operators (+, -, *, /, %, &lt;&lt;, &gt;&gt;,
+&amp;, and |)
+cast both operands to the NUMERIC storage class prior to being carried
+out.
+The cast is carried through even if it is lossy and irreversible.
+A NULL operand on a mathematical operator yields a NULL result.
+An operand on a mathematical operator that does not look in any way
+numeric and is not NULL is converted to 0 or 0.0.
+</p>
+<h2><a class="mozTocH2" name="mozTocId257759"></a>5.0 Sorting, Grouping
+and Compound SELECTs</h2>
+<p>When query results are sorted by an ORDER BY clause, values with
+storage
+class NULL come first, followed by INTEGER and REAL values
+interspersed in numeric order, followed by TEXT values in collating
+sequence order, and finally BLOB values in memcmp() order. No storage
+class conversions occur before the sort.</p>
+<p>When grouping values with the GROUP BY clause values with
+different storage classes are considered distinct, except for INTEGER
+and REAL values which are considered equal if they are numerically
+equal. No affinities are applied to any values as the result of a
+GROUP by clause.</p>
+<p>The compound SELECT operators UNION,
+INTERSECT and EXCEPT perform implicit comparisons between values.
+No affinity is applied to comparison operands for the implicit
+comparisons associated with UNION, INTERSECT, or EXCEPT - the values
+are compared as is.</p>
+<a name="collation"></a>
+<h2><a class="mozTocH2" name="mozTocId316484"></a>6.0 Collating
+Sequences</h2>
+<p>When SQLite compares two strings, it uses a collating sequence or
+collating function (two words for the same thing) to determine which
+string is greater or if the two strings are equal.
+SQLite has three built-in collating functions: BINARY, NOCASE, and
+RTRIM.</p>
+<ul>
+  <li><b>BINARY</b> - Compares string data using memcmp(), regardless
+of text encoding.</li>
+  <li><b>NOCASE</b> - The same as binary, except the 26 upper case
+characters of ASCII are folded to their lower case equivalents before
+the comparison is performed. Note that only ASCII characters are case
+folded. SQLite does not attempt to do full UTF case folding due to the
+size of the tables required.</li>
+  <li><b>RTRIM</b> - The same as binary, except that trailing space
+characters are ignored.</li>
+</ul>
+<p>An application can register additional collating functions using
+the <a href="http://sqlite.org/c3ref/create_collation.html">sqlite3_create_collation()</a>
+interface.</p>
+<h3><a class="mozTocH3" name="mozTocId543114"></a>6.1 Assigning
+Collating Sequences from SQL</h3>
+<p>
+Every column of every
+table has an associated collating function. If no collating function
+is explicitly defined, then the collating function defaults to BINARY.
+The COLLATE clause of the <a
+ href="http://sqlite.org/lang_createtable.html#tablecoldef">column
+definition</a> is used
+to define alternative collating functions for a column.
+</p>
+<p>The rules for determining which collating function to use for a
+binary comparison operator (=, &lt;, &gt;, &lt;=, &gt;=, !=, IS, and
+IS NOT) are as follows and in the order shown:
+</p>
+<ol>
+  <li>
+    <p>If either operand has an explicit collating function assignment
+using the postfix <a href="http://sqlite.org/lang_expr.html#collateop">COLLATE
+operator</a>, then the explicit collating function
+is used for comparison, with precedence to the collating function of
+the
+left operand.</p>
+  </li>
+  <li>
+    <p>If either operand is a column, then the collating function of
+that column is used with precedence to the left operand.
+For the purposes of the previous sentence, a column name
+preceded by one or more unary "+" operators is still considered a
+column name.
+    </p>
+  </li>
+  <li>
+    <p>Otherwise, the BINARY collating function is used for comparison.
+    </p>
+  </li>
+</ol>
+<p>
+An operand of a comparison is considered to have an explicit
+collating function assignment (rule 1 above) if any subexpression of
+the operand uses
+the postfix <a href="http://sqlite.org/lang_expr.html#collateop">COLLATE
+operator</a>. Thus, if a <a
+ href="http://sqlite.org/lang_expr.html#collateop">COLLATE operator</a>
+is used
+anywhere in a comparision expression, the collating function defined
+by that operator is used for string comparison regardless of what table
+columns might be a part of that expression. If two or more
+<a href="http://sqlite.org/lang_expr.html#collateop">COLLATE operator</a>
+subexpressions appear anywhere in a comparison, the left most explicit
+collating function is used regardless of how deeply the
+COLLATE operators are nested in the expression and regardless of
+how the expression is parenthesized.
+</p>
+<p>
+The expression "x BETWEEN y and z" is logically
+equivalent to two comparisons "x &gt;= y AND x &lt;= z" and works with
+respect to collating functions as if it were two separate comparisons.
+The expression "x IN (SELECT y ...)" is handled in the same way as the
+expression "x = y" for the purposes of determining the collating
+sequence.
+The collating sequence used for expressions of the form "x IN (y, z,
+...)" is the collating sequence of x.
+</p>
+<p>Terms of the ORDER BY clause that is part of a <a
+ href="http://sqlite.org/lang_select.html">SELECT</a>
+statement may be assigned a collating sequence using the <a
+ href="http://sqlite.org/lang_expr.html#collateop">COLLATE operator</a>,
+in which case the specified collating function is
+used for sorting.
+Otherwise, if the expression sorted by an ORDER BY clause is
+a column, then the collating sequence of the column is used to
+determine sort order. If the expression is not a column and has no
+COLLATE clause, then the BINARY collating sequence is used.
+</p>
+<h3><a class="mozTocH3" name="mozTocId268772"></a>6.2 Collation
+Sequence Examples</h3>
+<p>
+The examples below identify the collating sequences that would be used
+to
+determine the results of text comparisons that may be performed by
+various
+SQL statements. Note that a text comparison may not be required, and no
+collating sequence used, in the case of numeric, blob or NULL values.
+</p>
+<blockquote>
+  <pre>CREATE TABLE t1(<br>    x INTEGER PRIMARY KEY,<br>    a,                 /* collating sequence BINARY */<br>    b COLLATE BINARY,  /* collating sequence BINARY */<br>    c COLLATE RTRIM,   /* collating sequence RTRIM  */<br>    d COLLATE NOCASE   /* collating sequence NOCASE */<br>);<br>                   /* x   a     b     c       d */<br>INSERT INTO t1 VALUES(1,'abc','abc', 'abc  ','abc');<br>INSERT INTO t1 VALUES(2,'abc','abc', 'abc',  'ABC');<br>INSERT INTO t1 VALUES(3,'abc','abc', 'abc ', 'Abc');<br>INSERT INTO t1 VALUES(4,'abc','abc ','ABC',  'abc');<br> <br>/* Text comparison a=b is performed using the BINARY collating sequence. */<br>SELECT x FROM t1 WHERE a = b ORDER BY x;<br>--result 1 2 3<br><br>/* Text comparison a=b is performed using the RTRIM collating sequence. */<br>SELECT x FROM t1 WHERE a = b COLLATE RTRIM ORDER BY x;<br>--result 1 2 3 4<br><br>/* Text comparison d=a is performed using the NOCASE collating sequence. */<br>SELECT x FROM t1 WHERE d = a ORDER BY x;<br>--result 1 2 3 4<br><br>/* Text comparison a=d is performed using the BINARY collating sequence. */<br>SELECT x FROM t1 WHERE a = d ORDER BY x;<br>--result 1 4<br><br>/* Text comparison 'abc'=c is performed using the RTRIM collating sequence. */<br>SELECT x FROM t1 WHERE 'abc' = c ORDER BY x;<br>--result 1 2 3<br><br>/* Text comparison c='abc' is performed using the RTRIM collating sequence. */<br>SELECT x FROM t1 WHERE c = 'abc' ORDER BY x;<br>--result 1 2 3<br><br>/* Grouping is performed using the NOCASE collating sequence (Values<br>** 'abc', 'ABC', and 'Abc' are placed in the same group). */<br>SELECT count(*) FROM t1 GROUP BY d ORDER BY 1;<br>--result 4<br><br>/* Grouping is performed using the BINARY collating sequence.  'abc' and<br>** 'ABC' and 'Abc' form different groups */<br>SELECT count(*) FROM t1 GROUP BY (d || '') ORDER BY 1;<br>--result 1 1 2<br><br>/* Sorting or column c is performed using the RTRIM collating sequence. */<br>SELECT x FROM t1 ORDER BY c, x;<br>--result 4 1 2 3<br><br>/* Sorting of (c||'') is performed using the BINARY collating sequence. */<br>SELECT x FROM t1 ORDER BY (c||''), x;<br>--result 4 2 3 1<br><br>/* Sorting of column c is performed using the NOCASE collating sequence. */<br>SELECT x FROM t1 ORDER BY c COLLATE NOCASE, x;<br>--result 2 4 3 1<br></pre>
+</blockquote>
+<br>
+<br>
+</body>
+</html>

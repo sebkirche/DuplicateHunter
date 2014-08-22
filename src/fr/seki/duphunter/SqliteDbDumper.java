@@ -92,11 +92,12 @@ public class SqliteDbDumper implements IndexDumper {
 		String path = "";
 		try {
 			PreparedStatement stmt;
-			stmt = cnx.prepareStatement("insert or replace into FileIndex (path, repo, name, hash, lastup, author, size) values (?, ?, ?, ?, ?, ?, ?);");
+			stmt = cnx.prepareStatement("insert or replace into FileIndex (path, repo, name, hash, lastup, author, size) values (?, ?, ?, ?, datetime(?/1000,'unixepoch'), ?, ?);");
 			DefinedConsoleProgressor bar = new DefinedConsoleProgressor(index.size());
-			TimeZone tz = TimeZone.getTimeZone("UTC");
-			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-			df.setTimeZone(tz);
+			//this becomes useless as the Date().getTime() will get directly the date in UTC
+			//TimeZone tz = TimeZone.getTimeZone("UTC");
+			//DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+			//df.setTimeZone(tz);
 
 			long c = 0;
 			System.out.println("Saving into " + db + "... ");
@@ -110,7 +111,7 @@ public class SqliteDbDumper implements IndexDumper {
 				stmt.setString(2, node.getRepoRoot());
 				stmt.setString(3, node.getName());
 				stmt.setString(4, node.getChecksum());
-				stmt.setString(5, df.format(node.getDate()));
+				stmt.setDate(5, new Date(node.getDate().getTime()));
 				stmt.setString(6, node.getAuthor());
 				stmt.setLong(7, node.getSize());
 				stmt.addBatch();
