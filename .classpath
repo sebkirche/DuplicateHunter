@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="dist/DuplicateHunter.jar"/>
+	<classpathentry kind="lib" path="lib/antlr-runtime-3.4.jar"/>
+	<classpathentry kind="lib" path="lib/commons-cli-1.2-sources.jar"/>
+	<classpathentry kind="lib" path="lib/commons-cli-1.2.jar"/>
+	<classpathentry kind="lib" path="lib/commons-configuration-1.10-sources.jar"/>
+	<classpathentry kind="lib" path="lib/commons-configuration-1.10.jar"/>
+	<classpathentry kind="lib" path="lib/commons-io-2.4-sources.jar"/>
+	<classpathentry kind="lib" path="lib/commons-io-2.4.jar"/>
+	<classpathentry kind="lib" path="lib/commons-lang-2.6-sources.jar"/>
+	<classpathentry kind="lib" path="lib/commons-lang-2.6.jar"/>
+	<classpathentry kind="lib" path="lib/commons-lang3-3.3.2-javadoc.jar"/>
+	<classpathentry kind="lib" path="lib/commons-lang3-3.3.2.jar"/>
+	<classpathentry kind="lib" path="lib/commons-logging-1.2-javadoc.jar"/>
+	<classpathentry kind="lib" path="lib/commons-logging-1.2.jar"/>
+	<classpathentry kind="lib" path="lib/fast-md5-2.7.1-sources.jar"/>
+	<classpathentry kind="lib" path="lib/fast-md5-2.7.1.jar"/>
+	<classpathentry kind="lib" path="lib/quicktable-3.0.jar"/>
+	<classpathentry kind="lib" path="lib/sequence-library-1.0.3.jar"/>
+	<classpathentry kind="lib" path="lib/sqlite-jdbc-3.7.2-javadoc.jar"/>
+	<classpathentry kind="lib" path="lib/sqlite-jdbc-3.7.2.jar"/>
+	<classpathentry kind="lib" path="lib/sqljet-1.1.10.jar"/>
+	<classpathentry kind="lib" path="lib/svnkit-1.8.6-sources.jar"/>
+	<classpathentry kind="lib" path="lib/svnkit-1.8.6.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="build/classes"/>
+</classpath>

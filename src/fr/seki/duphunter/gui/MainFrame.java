@@ -2,7 +2,9 @@ package fr.seki.duphunter.gui;
 
 import fr.seki.duphunter.IndexController;
 import fr.seki.duphunter.IndexModel;
+import fr.seki.duphunter.Main;
 import fr.seki.duphunter.SimpleExtFileFilter;
+
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -19,9 +21,12 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+
 import static javax.swing.Action.ACCELERATOR_KEY;
+
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -34,11 +39,11 @@ import javax.swing.UIManager;
  */
 public class MainFrame extends javax.swing.JFrame implements Observer {
 
-    private File selectedFile;
+	private static final long serialVersionUID = -6238977731829675583L;
+	private File selectedFile;
     private IndexModel model;
     private IndexController control;
     private final int MENU_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-    public final String DH_VERSION = "0.3";
 
     /**
      * Creates new form MainFrame
@@ -58,7 +63,12 @@ public class MainFrame extends javax.swing.JFrame implements Observer {
         
         //react to drop files / directories
         frameContent.setDropTarget(new DropTarget() {
-            @Override
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = -3206389188684008811L;
+
+			@Override
             public synchronized void drop(DropTargetDropEvent dtde) {
                 dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
                 Transferable t = dtde.getTransferable();
@@ -190,12 +200,19 @@ public class MainFrame extends javax.swing.JFrame implements Observer {
 
     private void displayAbout(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_displayAbout
         ImageIcon icn = new ImageIcon(MainFrame.class.getResource("duplicate_search.png"));
-        JOptionPane.showMessageDialog(this, "DuplicateHunter\nVersion " + DH_VERSION, "About this tool", JOptionPane.OK_OPTION, icn);
+        JOptionPane.showMessageDialog(this, Main.APP_NAME + "\n" 
+        									+ Main.VERSION_STR + "\n" 
+        									+ Main.APP_COPY, "About this tool", JOptionPane.OK_OPTION, icn);
     }//GEN-LAST:event_displayAbout
 
     class ChooseDBAction extends AbstractAction {
 
-        public ChooseDBAction() {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 8374920029299592426L;
+
+		public ChooseDBAction() {
             putValue(NAME, "Open DB...");//same as super("Open...");
             putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, MENU_MASK));
         }
@@ -216,7 +233,12 @@ public class MainFrame extends javax.swing.JFrame implements Observer {
 
     class NewDBAction extends AbstractAction {
 
-        public NewDBAction() {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -1562963123471982892L;
+
+		public NewDBAction() {
             putValue(NAME, "New DB...");
             putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_N, MENU_MASK));
         }
@@ -243,7 +265,12 @@ public class MainFrame extends javax.swing.JFrame implements Observer {
 
     class QuitAction extends AbstractAction {
 
-        public QuitAction() {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -8568645861970241718L;
+
+		public QuitAction() {
             putValue(NAME, "Quit");
             putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Q, MENU_MASK));
         }
@@ -255,7 +282,12 @@ public class MainFrame extends javax.swing.JFrame implements Observer {
     };
 
     private Action dbSelectedAction = new AbstractAction() {
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 5418157587599211511L;
+
+		@Override
         public void actionPerformed(ActionEvent e) {
             control.openDB(selectedFile);
 

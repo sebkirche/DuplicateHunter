@@ -1,12 +1,15 @@
 package fr.seki.duphunter;
 
 import fr.seki.duphunter.gui.MainFrame;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -24,6 +27,11 @@ import org.tmatesoft.svn.core.internal.io.svn.SVNRepositoryFactoryImpl;
  */
 public class Main {
 
+	public static final String APP_NAME = "DuplicateHunter";
+	public static final String APP_COPY = "Sébastien Kirche © 2014-2015";
+	public static final String APP_VERSION = "0.3.1";
+	public static final String VERSION_STR = "v." + APP_VERSION;	
+	
 	/**
 	 * @param args the command line arguments
 	 */
@@ -38,6 +46,7 @@ public class Main {
 	}
 
 	public Main(String[] args) {
+		System.out.println(APP_NAME + " " + VERSION_STR + " - " + APP_COPY);
 		handleCLI(args);
 	}
 
@@ -53,7 +62,7 @@ public class Main {
 		}
 
 		HelpFormatter help = new HelpFormatter();
-		help.printHelp("java -jar DuplicateHunter.jar <options>", "options:", supportedOpts, null);
+		help.printHelp("java -jar " + APP_NAME + ".jar <options>", "options:", supportedOpts, null);
 	}
 
 	/**
@@ -66,7 +75,7 @@ public class Main {
 
 		Options opts = new Options();
 		opts.addOption("h", "help", false, "show command line usage");
-		opts.addOption("s", "svnrepo", true, "URL of the repository (svn:// http:// or file://)");
+		opts.addOption("s", "svnrepo", true, "URL of the repository (svn://, http:// or file://)");
 		opts.addOption("i", "index", false, "produce an index");
 		opts.addOption("o", null, true, "name of the file to save index");
 		opts.addOption("d", "db", true, "name of the database to save index");
