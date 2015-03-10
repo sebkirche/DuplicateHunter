@@ -7,6 +7,8 @@ The principle is that you index some files by their MD5 hash and then you can se
 
 At first it was a command-line only tool that could produce indexes for the console or text files to parse with Perl. It evolved and now has a minimal GUI interface and stores the index into a SQLite database.
 
+![gui prototype](/docs/dh_gui.png "gui prototype")
+
 For now, only local filesystems and SVN repositories (via SvnKit) can be indexed. I am planning to add at least Git as another scm if I find a Java library for it.
 
 ```
