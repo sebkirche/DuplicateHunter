@@ -3,7 +3,7 @@ package fr.seki.duphunter;
 import java.io.IOException;
 
 /**
- * A console progressor when the total amount of steps is known
+ * A console progressor when the total amount of steps is known at start.
  * @author Sebastien
  */
 public class DefinedConsoleProgressor implements Progressor {

@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 /**
- *
+ * Dump the index into standard output
  * @author Sebastien
  */
 public class StdoutDumper implements IndexDumper{

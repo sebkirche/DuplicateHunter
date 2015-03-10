@@ -34,7 +34,7 @@ import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
 /**
- *
+ * The Main view of the application: contains the index viewer and option panels.
  * @author Sebastien
  */
 public class MainFrame extends javax.swing.JFrame implements Observer {

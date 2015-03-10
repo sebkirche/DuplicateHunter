@@ -17,7 +17,7 @@ import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 
 /**
- *
+ * Indexer for directories (FSIndexer stands for filesystem indexer)
  * @author Sebastien
  */
 public class FSIndexer extends Indexer {
@@ -126,6 +126,10 @@ public class FSIndexer extends Indexer {
 		new SqliteDbDumper().dump(index, outName);
 	}
 	
+	/**
+	 * A FileFilter that rejects special directories with a name that begins with '.'<br/>
+	 * Like '.svn' or '.git'
+	 */
 	private class SpecialDirFilter implements IOFileFilter{
 		private long count = 0;
 
