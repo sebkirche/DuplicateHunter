@@ -5,8 +5,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * A console progressor when the total amount of steps is unknown.
- * Useful to show that the application is not blocked
+ * A console progressor when the total amount of steps is unknown.<br/>
+ * Useful to show that the application is not blocked.
  * @author Sebastien
  */
 public class UndefinedConsoleProgressor implements Progressor{

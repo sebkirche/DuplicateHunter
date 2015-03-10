@@ -5,13 +5,17 @@ import java.io.File;
 import javax.swing.filechooser.FileFilter;
 
 /**
- *
+ * A simple FileFilter to accept a single extension
  * @author Sebastien
  */
 public class SimpleExtFileFilter extends FileFilter{
 
 	private String ext;
 	
+	/**
+	 * Make a FileFilter from the extension
+	 * @param extension the file extension (without the '.')
+	 */
 	public SimpleExtFileFilter(String extension) {
 		
 		ext = "." + extension;

@@ -17,7 +17,7 @@ import javax.swing.JOptionPane;
 import quick.dbtable.DBTable;
 
 /**
- *
+ * Panel to display the Index content. Based on a database query editor + data grid with navigation buttons.
  * @author Sebastien
  */
 public class IndexViewPanel extends javax.swing.JPanel implements Observer {

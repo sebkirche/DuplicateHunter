@@ -1,7 +1,7 @@
 package fr.seki.duphunter;
 
 /**
- *
+ * A common ancestor for Indexers
  * @author Sebastien
  */
 public abstract class Indexer {

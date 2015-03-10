@@ -3,9 +3,11 @@ package fr.seki.duphunter;
 
 /**
  * Types of available outputs
- * - screen
- * - file
- * - database (SQLite)
+ * <ul>
+ * <li>screen</li>
+ * <li>file</li>
+ * <li>database (SQLite)</li>
+ * </ul>
  * 
  * @author Sebastien
  */
