@@ -1,7 +1,6 @@
 package fr.seki.duphunter;
 
 import com.twmacinta.util.MD5;
-import static fr.seki.duphunter.OutputKind.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;

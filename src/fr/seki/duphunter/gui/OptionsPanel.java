@@ -33,7 +33,8 @@ import javax.swing.table.AbstractTableModel;
  */
 public class OptionsPanel extends javax.swing.JPanel implements Observer {
 
-    private IndexModel model = null;
+	private static final long serialVersionUID = 1L;
+	private IndexModel model = null;
     private MainFrame parent = null;
     private SourcesTableModel srcTableModel = new SourcesTableModel();
     private boolean isConnected = false;
@@ -56,7 +57,10 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
 
         //react to drop files / directories
         sourcesScroll.setDropTarget(new DropTarget() {
-            @Override
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
             public synchronized void drop(DropTargetDropEvent dtde) {
                 dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
                 Transferable t = dtde.getTransferable();
@@ -326,7 +330,8 @@ public class OptionsPanel extends javax.swing.JPanel implements Observer {
 
     private class SourcesTableModel extends AbstractTableModel {
 
-        protected ColumnData[] colNames = {new ColumnData("Source", JLabel.LEFT), new ColumnData("Active?", JLabel.CENTER)};
+		private static final long serialVersionUID = 1L;
+		protected ColumnData[] colNames = {new ColumnData("Source", JLabel.LEFT), new ColumnData("Active?", JLabel.CENTER)};
         protected ArrayList<SourceData> data;
 
         public SourcesTableModel() {
